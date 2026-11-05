@@ -64,48 +64,48 @@ export default function TeamPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Equipo</h2>
-        <p className="text-slate-600">
+        <p className="text-muted">
           Fotos y cargos que se muestran en la sección Equipo del home.
         </p>
       </div>
 
       {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-theme fg-admin-panel p-5">
         <h3 className="font-semibold">{editing ? 'Editar integrante' : 'Nuevo integrante'}</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <input
             required
             placeholder="Nombre"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
           />
           <input
             placeholder="Cargo"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.role}
             onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}
           />
           <input
             placeholder="URL de foto"
-            className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-2"
+            className="rounded-lg border border-theme px-3 py-2 md:col-span-2"
             value={form.photo_url}
             onChange={(e) => setForm((prev) => ({ ...prev, photo_url: e.target.value }))}
           />
           <input
             type="number"
             placeholder="Orden"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.display_order}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
@@ -136,21 +136,21 @@ export default function TeamPage() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-theme fg-admin-panel p-4"
           >
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-200">
+              <div className="h-12 w-12 overflow-hidden rounded-full bg-[color:var(--page-bg)]">
                 {item.photo_url ? (
                   <img src={item.photo_url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-sm font-bold text-slate-500">
+                  <div className="flex h-full w-full items-center justify-center text-sm font-bold text-muted">
                     {item.name.charAt(0)}
                   </div>
                 )}
               </div>
               <div>
                 <p className="font-semibold">{item.name}</p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted">
                   {item.is_visible ? 'Visible' : 'Oculto'}
                   {item.role ? ` · ${item.role}` : ''}
                 </p>

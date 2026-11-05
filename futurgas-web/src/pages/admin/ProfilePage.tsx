@@ -7,18 +7,18 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Perfil y sesión</h2>
-        <p className="text-slate-600">Información de la cuenta administrativa.</p>
+        <p className="text-muted">Información de la cuenta administrativa.</p>
       </div>
 
-      <div className="max-w-lg space-y-3 rounded-2xl border border-slate-200 bg-white p-5">
+      <div className="max-w-lg space-y-3 rounded-2xl border border-theme fg-admin-panel p-5">
         <p>
-          <span className="text-slate-500">Email:</span> {user?.email}
+          <span className="text-muted">Email:</span> {user?.email}
         </p>
         <p>
-          <span className="text-slate-500">Rol:</span> {role}
+          <span className="text-muted">Rol:</span> {role}
         </p>
         <p>
-          <span className="text-slate-500">ID:</span> {user?.id}
+          <span className="text-muted">ID:</span> {user?.id}
         </p>
         <button
           type="button"

@@ -1,9 +1,28 @@
 import { requireSupabase } from '../lib/supabase';
 
+function mapAuthError(error: { message?: string; status?: number; code?: string }) {
+  const msg = (error.message || '').toLowerCase();
+  if (msg.includes('invalid login credentials')) {
+    return 'Correo o contraseña incorrectos. Si el usuario es nuevo, confirmá el email en Supabase Auth o desactivá “Confirm email”.';
+  }
+  if (msg.includes('email not confirmed')) {
+    return 'El email aún no está confirmado. Confirmalo en Authentication → Users o desactivá “Confirm email”.';
+  }
+  if (
+    msg.includes('permission denied') ||
+    msg.includes('not acceptable') ||
+    error.code === '42501' ||
+    error.status === 403
+  ) {
+    return 'Sin permisos en la base (403). Ejecutá la migración 006_table_grants.sql y asegurate de tener fila en admin_users.';
+  }
+  return error.message || 'No se pudo iniciar sesión';
+}
+
 export async function signInWithPassword(email: string, password: string) {
   const supabase = requireSupabase();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw error;
+  if (error) throw new Error(mapAuthError(error));
 
   const userId = data.user?.id;
   if (!userId) throw new Error('No se pudo obtener el usuario');
@@ -14,10 +33,15 @@ export async function signInWithPassword(email: string, password: string) {
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (adminError) throw adminError;
+  if (adminError) {
+    await supabase.auth.signOut();
+    throw new Error(mapAuthError(adminError));
+  }
   if (!admin) {
     await supabase.auth.signOut();
-    throw new Error('Tu usuario no tiene permisos de administración');
+    throw new Error(
+      'Tu usuario no tiene permisos de administración. Insertá su UUID en public.admin_users.'
+    );
   }
 
   return { session: data.session, user: data.user, role: admin.role as string };

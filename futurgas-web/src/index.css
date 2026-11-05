@@ -209,17 +209,66 @@
 }
 
 .fg-admin-card {
-  background: var(--surface);
+  background: var(--surface-elevated);
   border: 1px solid var(--border);
   border-radius: 1rem;
   box-shadow: 0 10px 30px rgb(15 23 42 / 0.06);
   color: var(--foreground);
 }
 
+.fg-admin-panel {
+  background: var(--page-bg);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  color: var(--foreground);
+}
+
+html.dark .fg-admin-card {
+  background: var(--surface-elevated);
+}
+
 .fg-admin-topbar {
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   border-bottom: 1px solid var(--border);
   color: var(--foreground);
+}
+
+.fg-admin main,
+.fg-admin .fg-admin-main {
+  color: var(--foreground);
+}
+
+.fg-admin input,
+.fg-admin textarea,
+.fg-admin select {
+  background-color: var(--page-bg);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.fg-admin input::placeholder,
+.fg-admin textarea::placeholder {
+  color: color-mix(in srgb, var(--muted) 85%, transparent);
+}
+
+.fg-admin-alert-ok {
+  border: 1px solid color-mix(in srgb, #10b981 35%, var(--border));
+  background: color-mix(in srgb, #10b981 12%, var(--surface));
+  color: color-mix(in srgb, #047857 70%, var(--foreground));
+}
+
+html.dark .fg-admin-alert-ok {
+  color: #6ee7b7;
+}
+
+.fg-admin-alert-error {
+  border: 1px solid color-mix(in srgb, #ef4444 35%, var(--border));
+  background: color-mix(in srgb, #ef4444 12%, var(--surface));
+  color: color-mix(in srgb, #b91c1c 70%, var(--foreground));
+}
+
+html.dark .fg-admin-alert-error {
+  color: #fca5a5;
 }
 
 @media (prefers-reduced-motion: reduce) {

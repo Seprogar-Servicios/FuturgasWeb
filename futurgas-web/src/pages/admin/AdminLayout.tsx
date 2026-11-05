@@ -46,7 +46,9 @@ export default function AdminLayout() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               Futurgas CMS
             </p>
-            <h1 className="font-display text-lg font-bold tracking-tight">Panel de gestión</h1>
+            <h1 className="font-display text-lg font-bold tracking-tight text-white">
+              Panel de gestión
+            </h1>
           </div>
           <nav className="flex gap-1 overflow-x-auto p-3 md:flex-col">
             {links.map((link) => (

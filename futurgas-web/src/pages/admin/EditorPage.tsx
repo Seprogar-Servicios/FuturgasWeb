@@ -162,7 +162,7 @@ export default function EditorPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">Editor visual</h2>
-          <p className="text-slate-600">
+          <p className="text-muted">
             Editá bloques predefinidos. No se permite HTML ni CSS libre.
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function EditorPage() {
             type="button"
             onClick={() => void saveDraft()}
             disabled={saving || !selected}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-lg border border-theme fg-admin-panel px-3 py-2 text-sm hover:brightness-110 disabled:opacity-50"
           >
             Guardar borrador
           </button>
@@ -195,30 +195,30 @@ export default function EditorPage() {
       </div>
 
       {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
           {error}
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[280px_1fr]">
-        <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="space-y-2 rounded-2xl border border-theme fg-admin-panel p-4">
           <h3 className="mb-3 font-semibold">Secciones</h3>
           {sections.map((section, index) => (
-            <div key={section.id} className="rounded-lg border border-slate-200 p-2">
+            <div key={section.id} className="rounded-lg border border-theme p-2">
               <button
                 type="button"
                 onClick={() => selectSection(section)}
                 className={`w-full rounded-md px-2 py-2 text-left text-sm ${
-                  selectedId === section.id ? 'bg-blue-50 text-blue-700' : 'hover:bg-slate-50'
+                  selectedId === section.id ? 'bg-brand/15 text-brand' : 'hover:bg-[color:var(--page-bg)]'
                 }`}
               >
                 <div className="font-medium">{section.title || section.section_type}</div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-muted">
                   {section.section_type}
                   {section.has_unpublished_changes ? ' · borrador' : ' · publicado'}
                   {!section.is_visible ? ' · oculta' : ''}
@@ -244,9 +244,9 @@ export default function EditorPage() {
           ))}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="rounded-2xl border border-theme fg-admin-panel p-5">
           {!selected ? (
-            <p className="text-slate-500">Seleccioná una sección para editarla.</p>
+            <p className="text-muted">Seleccioná una sección para editarla.</p>
           ) : (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -264,18 +264,18 @@ export default function EditorPage() {
 
               {textFields.map((key) => (
                 <div key={key}>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     {FIELD_LABELS[key] || key}
                   </label>
                   {String(draft[key] ?? '').length > 80 ? (
                     <textarea
-                      className="min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="min-h-24 w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft[key] ?? '')}
                       onChange={(e) => updateField(key, e.target.value)}
                     />
                   ) : (
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft[key] ?? '')}
                       onChange={(e) => updateField(key, e.target.value)}
                     />
@@ -288,7 +288,7 @@ export default function EditorPage() {
                   <div>
                     <label className="mb-1 block text-sm font-medium">CTA principal · texto</label>
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft.primary_cta.label ?? '')}
                       onChange={(e) => updateField('primary_cta.label', e.target.value)}
                     />
@@ -296,7 +296,7 @@ export default function EditorPage() {
                   <div>
                     <label className="mb-1 block text-sm font-medium">CTA principal · enlace</label>
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft.primary_cta.href ?? '')}
                       onChange={(e) => updateField('primary_cta.href', e.target.value)}
                     />
@@ -309,7 +309,7 @@ export default function EditorPage() {
                   <div>
                     <label className="mb-1 block text-sm font-medium">CTA secundario · texto</label>
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft.secondary_cta.label ?? '')}
                       onChange={(e) => updateField('secondary_cta.label', e.target.value)}
                     />
@@ -317,7 +317,7 @@ export default function EditorPage() {
                   <div>
                     <label className="mb-1 block text-sm font-medium">CTA secundario · enlace</label>
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft.secondary_cta.href ?? '')}
                       onChange={(e) => updateField('secondary_cta.href', e.target.value)}
                     />
@@ -330,7 +330,7 @@ export default function EditorPage() {
                   <div>
                     <label className="mb-1 block text-sm font-medium">CTA · texto</label>
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft.cta.label ?? '')}
                       onChange={(e) => updateField('cta.label', e.target.value)}
                     />
@@ -338,7 +338,7 @@ export default function EditorPage() {
                   <div>
                     <label className="mb-1 block text-sm font-medium">CTA · enlace</label>
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                      className="w-full rounded-lg border border-theme px-3 py-2"
                       value={String(draft.cta.href ?? '')}
                       onChange={(e) => updateField('cta.href', e.target.value)}
                     />
@@ -346,12 +346,12 @@ export default function EditorPage() {
                 </div>
               )}
 
-              <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
-                <p className="mb-2 text-sm font-semibold text-slate-700">Vista previa rápida</p>
-                <p className="text-xl font-bold text-slate-900">
+              <div className="rounded-xl border border-dashed border-theme bg-[color:var(--page-bg)] p-4">
+                <p className="mb-2 text-sm font-semibold text-foreground">Vista previa rápida</p>
+                <p className="text-xl font-bold text-foreground">
                   {String(draft.headline || draft.title || selected.title || '')}
                 </p>
-                <p className="mt-2 text-slate-600">
+                <p className="mt-2 text-muted">
                   {String(draft.subheadline || draft.body || '')}
                 </p>
               </div>

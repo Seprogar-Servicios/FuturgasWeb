@@ -52,23 +52,23 @@ export default function MediaPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Galería multimedia</h2>
-        <p className="text-slate-600">Biblioteca de imágenes en Supabase Storage.</p>
+        <p className="text-muted">Biblioteca de imágenes en Supabase Storage.</p>
       </div>
 
       {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
           {error}
         </div>
       )}
 
-      <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center hover:border-blue-400">
+      <label className="fg-admin-panel flex cursor-pointer flex-col items-center justify-center border-dashed p-8 text-center hover:border-brand/40">
         <span className="font-medium">{uploading ? 'Subiendo…' : 'Subir imagen'}</span>
-        <span className="mt-1 text-sm text-slate-500">Máx. 5 MB · JPG/PNG/WebP/AVIF/GIF</span>
+        <span className="mt-1 text-sm text-muted">Máx. 5 MB · JPG/PNG/WebP/AVIF/GIF</span>
         <input
           type="file"
           accept={ALLOWED.join(',')}
@@ -80,12 +80,12 @@ export default function MediaPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
-          <article key={item.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <article key={item.id} className="overflow-hidden rounded-xl border border-theme fg-admin-panel">
             <img src={item.public_url} alt={item.alt_text || item.filename} className="h-40 w-full object-cover" />
             <div className="space-y-2 p-3">
               <p className="truncate text-sm font-medium">{item.filename}</p>
               <input
-                className="w-full rounded border border-slate-300 px-2 py-1 text-sm"
+                className="w-full rounded border border-theme px-2 py-1 text-sm"
                 defaultValue={item.alt_text || ''}
                 placeholder="Texto alternativo"
                 onBlur={(e) =>

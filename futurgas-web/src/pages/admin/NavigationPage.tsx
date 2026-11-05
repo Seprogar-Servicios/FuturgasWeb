@@ -40,34 +40,34 @@ export default function NavigationPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Navegación</h2>
-        <p className="text-slate-600">Menú principal de la web pública.</p>
+        <p className="text-muted">Menú principal de la web pública.</p>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 md:grid-cols-4">
+      <form onSubmit={onSubmit} className="grid gap-3 rounded-2xl border border-theme fg-admin-panel p-5 md:grid-cols-4">
         <input
           required
           placeholder="Etiqueta"
-          className="rounded-lg border border-slate-300 px-3 py-2"
+          className="rounded-lg border border-theme px-3 py-2"
           value={form.label}
           onChange={(e) => setForm((prev) => ({ ...prev, label: e.target.value }))}
         />
         <input
           required
           placeholder="URL (#servicios)"
-          className="rounded-lg border border-slate-300 px-3 py-2"
+          className="rounded-lg border border-theme px-3 py-2"
           value={form.url}
           onChange={(e) => setForm((prev) => ({ ...prev, url: e.target.value }))}
         />
         <input
           type="number"
           placeholder="Orden"
-          className="rounded-lg border border-slate-300 px-3 py-2"
+          className="rounded-lg border border-theme px-3 py-2"
           value={form.display_order}
           onChange={(e) => setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))}
         />
@@ -80,13 +80,13 @@ export default function NavigationPage() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-theme fg-admin-panel p-4"
           >
             <div>
               <p className="font-medium">
-                {item.label} <span className="text-slate-400">→ {item.url}</span>
+                {item.label} <span className="text-muted">→ {item.url}</span>
               </p>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted">
                 Orden {item.display_order} · {item.is_visible ? 'Visible' : 'Oculto'}
               </p>
             </div>

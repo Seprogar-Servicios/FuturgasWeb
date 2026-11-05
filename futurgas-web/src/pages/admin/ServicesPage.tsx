@@ -77,46 +77,46 @@ export default function ServicesPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Servicios</h2>
-        <p className="text-slate-600">Gestión de servicios visibles en la web pública.</p>
+        <p className="text-muted">Gestión de servicios visibles en la web pública.</p>
       </div>
 
       {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-theme fg-admin-panel p-5">
         <h3 className="font-semibold">{editing ? 'Editar servicio' : 'Nuevo servicio'}</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <input
             required
             placeholder="Título"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.title}
             onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
           />
           <input
             placeholder="Icono (fire, network, pipe, wrench, building)"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.icon_key}
             onChange={(e) => setForm((prev) => ({ ...prev, icon_key: e.target.value }))}
           />
           <textarea
             required
             placeholder="Descripción"
-            className="min-h-24 rounded-lg border border-slate-300 px-3 py-2 md:col-span-2"
+            className="min-h-24 rounded-lg border border-theme px-3 py-2 md:col-span-2"
             value={form.description}
             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
           />
           <textarea
             placeholder="Características (una por línea)"
-            className="min-h-24 rounded-lg border border-slate-300 px-3 py-2 md:col-span-2"
+            className="min-h-24 rounded-lg border border-theme px-3 py-2 md:col-span-2"
             value={form.featuresText}
             onChange={(e) => setForm((prev) => ({ ...prev, featuresText: e.target.value }))}
           />
@@ -133,7 +133,7 @@ export default function ServicesPage() {
           <input
             type="number"
             placeholder="Orden"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.display_order}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
@@ -168,11 +168,11 @@ export default function ServicesPage() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-theme fg-admin-panel p-4"
           >
             <div>
               <p className="font-semibold">{item.title}</p>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted">
                 Orden {item.display_order} · {item.is_visible ? 'Visible' : 'Oculto'}
               </p>
             </div>

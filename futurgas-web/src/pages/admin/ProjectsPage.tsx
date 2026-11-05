@@ -84,35 +84,35 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Trabajos / obras</h2>
-        <p className="text-slate-600">
+        <p className="text-muted">
           Cada trabajo se asocia a un servicio y sus fotos aparecen en la galería del home.
         </p>
       </div>
 
       {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-theme fg-admin-panel p-5">
         <h3 className="font-semibold">{editing ? 'Editar trabajo' : 'Nuevo trabajo'}</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <input
             required
             placeholder="Título"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.title}
             onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
           />
           <select
             required
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.service_slug}
             onChange={(e) => setForm((prev) => ({ ...prev, service_slug: e.target.value }))}
           >
@@ -125,39 +125,39 @@ export default function ProjectsPage() {
           </select>
           <input
             placeholder="Categoría (opcional)"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.category}
             onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
           />
           <textarea
             required
             placeholder="Descripción"
-            className="min-h-24 rounded-lg border border-slate-300 px-3 py-2 md:col-span-2"
+            className="min-h-24 rounded-lg border border-theme px-3 py-2 md:col-span-2"
             value={form.description}
             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
           />
           <input
             placeholder="URL imagen de portada"
-            className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-2"
+            className="rounded-lg border border-theme px-3 py-2 md:col-span-2"
             value={form.cover_image}
             onChange={(e) => setForm((prev) => ({ ...prev, cover_image: e.target.value }))}
           />
           <input
             placeholder="Ubicación"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.location}
             onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
           />
           <input
             type="date"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.completion_date}
             onChange={(e) => setForm((prev) => ({ ...prev, completion_date: e.target.value }))}
           />
           <input
             type="number"
             placeholder="Orden"
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.display_order}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
@@ -188,11 +188,11 @@ export default function ProjectsPage() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-theme fg-admin-panel p-4"
           >
             <div>
               <p className="font-semibold">{item.title}</p>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted">
                 {item.is_published ? 'Publicado' : 'Borrador'}
                 {item.service_slug ? ` · ${item.service_slug}` : ''}
                 {item.location ? ` · ${item.location}` : ''}

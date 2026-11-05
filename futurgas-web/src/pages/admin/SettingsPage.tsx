@@ -60,55 +60,55 @@ export default function SettingsPage() {
   }
 
   if (!form) {
-    return <p className="text-slate-600">Cargando configuración…</p>;
+    return <p className="text-muted">Cargando configuración…</p>;
   }
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Configuración general</h2>
-        <p className="text-slate-600">Datos de contacto, marca y SEO.</p>
+        <p className="text-muted">Datos de contacto, marca y SEO.</p>
       </div>
 
       {message && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={saveDraft} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+      <form onSubmit={saveDraft} className="space-y-4 rounded-2xl border border-theme fg-admin-panel p-5">
         <div className="grid gap-4 md:grid-cols-2">
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.site_name}
             onChange={(e) => setForm({ ...form, site_name: e.target.value })}
             placeholder="Nombre del sitio"
           />
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.contact_email || ''}
             onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
             placeholder="Email"
           />
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.whatsapp || ''}
             onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
             placeholder="WhatsApp (54911...)"
           />
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.logo_url || ''}
             onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
             placeholder="URL logo"
           />
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.seo_settings.title || ''}
             onChange={(e) =>
               setForm({
@@ -119,7 +119,7 @@ export default function SettingsPage() {
             placeholder="SEO título"
           />
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-2"
+            className="rounded-lg border border-theme px-3 py-2 md:col-span-2"
             value={form.seo_settings.description || ''}
             onChange={(e) =>
               setForm({
@@ -130,7 +130,7 @@ export default function SettingsPage() {
             placeholder="SEO descripción"
           />
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.social_links.instagram || ''}
             onChange={(e) =>
               setForm({
@@ -141,7 +141,7 @@ export default function SettingsPage() {
             placeholder="Instagram URL"
           />
           <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
+            className="rounded-lg border border-theme px-3 py-2"
             value={form.social_links.facebook || ''}
             onChange={(e) =>
               setForm({
@@ -158,7 +158,7 @@ export default function SettingsPage() {
           {form.phones.map((phone, index) => (
             <div key={index} className="grid gap-2 md:grid-cols-3">
               <input
-                className="rounded-lg border border-slate-300 px-3 py-2"
+                className="rounded-lg border border-theme px-3 py-2"
                 value={phone.label}
                 onChange={(e) => {
                   const phones = [...form.phones];
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                 placeholder="Etiqueta"
               />
               <input
-                className="rounded-lg border border-slate-300 px-3 py-2"
+                className="rounded-lg border border-theme px-3 py-2"
                 value={phone.number}
                 onChange={(e) => {
                   const phones = [...form.phones];
@@ -178,7 +178,7 @@ export default function SettingsPage() {
                 placeholder="Número visible"
               />
               <input
-                className="rounded-lg border border-slate-300 px-3 py-2"
+                className="rounded-lg border border-theme px-3 py-2"
                 value={phone.tel}
                 onChange={(e) => {
                   const phones = [...form.phones];

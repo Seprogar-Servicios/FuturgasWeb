@@ -38,7 +38,7 @@ export default function LoginPage() {
 
       <form
         onSubmit={onSubmit}
-        className="relative w-full max-w-md rounded-2xl border border-theme bg-surface p-8 shadow-sm"
+        className="relative w-full max-w-md rounded-2xl border border-theme fg-admin-panel-elevated p-8 shadow-sm"
       >
         <div className="mb-2 h-1 w-12 rounded-full bg-gradient-to-r from-brand to-brand-light" />
         <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand">Futurgas</p>

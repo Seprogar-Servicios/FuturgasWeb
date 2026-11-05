@@ -6,7 +6,10 @@ alter table public.projects
 create index if not exists projects_service_slug_idx
   on public.projects (service_slug);
 
-create or replace view public.v_public_projects
+-- CREATE OR REPLACE no puede insertar columnas en el medio de una vista existente.
+drop view if exists public.v_public_projects;
+
+create view public.v_public_projects
 with (security_invoker = false)
 as
 select
@@ -23,6 +26,8 @@ select
   updated_at
 from public.projects
 where is_published = true;
+
+grant select on public.v_public_projects to anon, authenticated;
 
 -- Lectura pública de imágenes de obras publicadas
 drop policy if exists project_images_public_read on public.project_images;

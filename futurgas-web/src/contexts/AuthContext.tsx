@@ -29,6 +29,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const clearLocalAuth = useCallback(() => {
+    setSession(null);
+    setUser(null);
+    setRole(null);
+  }, []);
+
   const bootstrap = useCallback(async () => {
     if (!isSupabaseConfigured) {
       setLoading(false);
@@ -36,41 +42,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       const current = await getSession();
-      setSession(current);
-      if (current) {
-        const admin = await getCurrentAdmin();
-        if (!admin) {
-          await signOut();
-          setSession(null);
-          setUser(null);
-          setRole(null);
-        } else {
-          setUser(admin.user);
-          setRole(admin.admin.role);
-        }
+      if (!current) {
+        clearLocalAuth();
+        return;
       }
+      const admin = await getCurrentAdmin();
+      if (!admin) {
+        await signOut();
+        clearLocalAuth();
+        return;
+      }
+      setSession(current);
+      setUser(admin.user);
+      setRole(admin.admin.role);
     } catch {
-      setSession(null);
-      setUser(null);
-      setRole(null);
+      try {
+        await signOut();
+      } catch {
+        /* ignore */
+      }
+      clearLocalAuth();
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearLocalAuth]);
 
   useEffect(() => {
     void bootstrap();
     const supabase = getSupabase();
     if (!supabase) return;
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      if (!nextSession) {
-        setUser(null);
-        setRole(null);
+    const { data: sub } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'SIGNED_OUT' || !nextSession) {
+        clearLocalAuth();
+        return;
+      }
+      // No confiar solo en el JWT: el panel exige fila en admin_users + grants.
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        void getCurrentAdmin()
+          .then((admin) => {
+            if (!admin) {
+              void signOut().finally(clearLocalAuth);
+              return;
+            }
+            setSession(nextSession);
+            setUser(admin.user);
+            setRole(admin.admin.role);
+          })
+          .catch(() => {
+            void signOut().finally(clearLocalAuth);
+          });
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, [bootstrap]);
+  }, [bootstrap, clearLocalAuth]);
 
   const login = useCallback(async (email: string, password: string) => {
     const result = await signInWithPassword(email, password);

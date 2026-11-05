@@ -17,6 +17,20 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- admin_users (debe existir antes de is_admin)
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.admin_users (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null unique references auth.users (id) on delete cascade,
+  role text not null default 'admin'
+    check (role in ('admin', 'editor')),
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists admin_users_user_id_idx on public.admin_users (user_id);
+
 create or replace function public.is_admin()
 returns boolean
 language sql
@@ -34,20 +48,6 @@ $$;
 
 revoke all on function public.is_admin() from public;
 grant execute on function public.is_admin() to authenticated, anon;
-
--- ---------------------------------------------------------------------------
--- admin_users
--- ---------------------------------------------------------------------------
-
-create table if not exists public.admin_users (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null unique references auth.users (id) on delete cascade,
-  role text not null default 'admin'
-    check (role in ('admin', 'editor')),
-  created_at timestamptz not null default timezone('utc', now())
-);
-
-create index if not exists admin_users_user_id_idx on public.admin_users (user_id);
 
 -- ---------------------------------------------------------------------------
 -- site_settings (single-row conceptual)
@@ -105,7 +105,10 @@ create table if not exists public.page_sections (
   id uuid primary key default gen_random_uuid(),
   page_id uuid not null references public.pages (id) on delete cascade,
   section_type text not null
-    check (section_type in ('hero', 'about', 'services', 'projects', 'gallery', 'contact', 'custom')),
+    check (section_type in (
+      'hero', 'about', 'services', 'projects', 'gallery',
+      'process', 'coverage', 'team', 'faq', 'contact', 'custom'
+    )),
   title text,
   draft_content jsonb not null default '{}'::jsonb,
   published_content jsonb not null default '{}'::jsonb,

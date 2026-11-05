@@ -196,10 +196,10 @@ export default function Projects({ content, projects }: Props) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}
               transition={{ duration: 0.25 }}
-              className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-theme bg-surface shadow-2xl"
+              className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-theme bg-surface-elevated shadow-2xl"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-theme bg-surface/95 px-5 py-4 backdrop-blur">
+              <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-theme bg-surface-elevated/95 px-5 py-4 backdrop-blur">
                 <div>
                   {selected.category && (
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-brand">
