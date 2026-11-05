@@ -1,513 +1,251 @@
-import { motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FireIcon, PhoneIcon, ChevronRightIcon, MapPinIcon } from '@heroicons/react/24/solid';
+import type { HeroContent } from '../../types/content';
+import { useSiteData } from '../../contexts/SiteDataContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
-export default function Hero() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const animationFrameId = useRef<number | null>(null);
+const ROTATING_WORDS = ['obra', 'vivienda', 'local', 'edificio', 'comercio'];
 
-  // Efecto para manejar el estado de móvil/escritorio
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkIfMobile();
-    
-    // Usar debounce para evitar múltiples actualizaciones durante el redimensionamiento
-    let resizeTimer: ReturnType<typeof setTimeout>;
-    const handleResize = () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        checkIfMobile();
-      }, 100);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(resizeTimer);
-    };
-  }, []);
+type Props = { content: HeroContent };
 
-  // Efecto para el canvas y partículas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
+function headlineWithHighlight(
+  headline: string,
+  highlight: string | undefined,
+  baseClass: string
+): ReactNode {
+  if (!highlight?.trim()) {
+    return <span className={baseClass}>{headline}</span>;
+  }
 
-    let width = window.innerWidth;
-    let height = 600;
-    
-    const handleResize = () => {
-      width = window.innerWidth;
-      if (canvas) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-    };
-    
-    // Configuración inicial
-    handleResize();
-    
-    // Partículas
-    const particles: {x: number, y: number, size: number, speedX: number, speedY: number}[] = [];
-    const particleCount = isMobile ? 30 : 60;
-    
-    // Inicializar partículas
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: Math.random() * 3 + 1,
-        speedX: Math.random() * 0.5 - 0.25,
-        speedY: Math.random() * 0.5 - 0.25
-      });
-    }
-    
-    // Función de animación de partículas
-    const animate = () => {
-      if (!ctx || !canvas) return;
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Actualizar y dibujar partículas
-      particles.forEach(particle => {
-        particle.x += particle.speedX;
-        particle.y += particle.speedY;
-        
-        // Rebotar en los bordes
-        if (particle.x < 0 || particle.x > width) particle.speedX *= -1;
-        if (particle.y < 0 || particle.y > height) particle.speedY *= -1;
-        
-        // Dibujar partícula
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    };
-    
-    // Iniciar animación
-    const animateParticles = () => {
-      if (canvas && ctx) {
-        animate();
-        const id = requestAnimationFrame(animateParticles);
-        animationFrameId.current = id;
-      }
-    };
-    
-    const initialId = requestAnimationFrame(animateParticles);
-    animationFrameId.current = initialId;
-    
-    // Limpieza
-    return () => {
-      if (animationFrameId.current !== null) {
-        cancelAnimationFrame(animationFrameId.current);
-        animationFrameId.current = null;
-      }
-    };
-  }, []);
+  const needle = highlight.trim();
+  const index = headline.toLowerCase().indexOf(needle.toLowerCase());
+  if (index === -1) {
+    return <span className={baseClass}>{headline}</span>;
+  }
+
+  const before = headline.slice(0, index);
+  const match = headline.slice(index, index + needle.length);
+  const after = headline.slice(index + needle.length);
 
   return (
-    <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-white overflow-hidden py-20 md:py-32 lg:py-0 lg:min-h-screen flex items-center shadow-[inset_0_-60px_100px_-50px_rgba(0,0,0,0.5)]">
-      <canvas 
-        ref={canvasRef} 
-        className="absolute top-0 left-0 w-full h-full opacity-50 pointer-events-none"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-        }}
-      />
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
-        <div className="flex flex-col items-center lg:flex-row lg:items-center">
-          <div className="w-full mb-8 sm:mb-12 lg:mb-0 lg:w-1/2 lg:pr-8">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-            >
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-4 sm:mb-6 bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent m-0 p-0">
-                Tu solución integral en servicios de <span className="text-blue-400">gas</span>, plomería y electricidad
-              </h1>
-            </motion.div>
-            
-            <motion.p 
-              className="text-base sm:text-lg md:text-xl text-slate-200 mb-8 sm:mb-10 leading-relaxed max-w-2xl opacity-90"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 0.9, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-            >
-              Profesionales calificados para resolver todas tus necesidades de instalación, mantenimiento y reparación con la más alta calidad y seguridad.
-            </motion.p>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto"
-            >
-              <div className="w-full sm:w-auto">
-                <a
-                  href="#contacto"
-                  className="relative z-20 w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 sm:py-3.5 text-base sm:text-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-md hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-900"
-                >
-                  Solicitar presupuesto
-                  <svg style={{ marginLeft: '0.5rem', width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </a>
-              </div>
-              <div className="w-full sm:w-auto">
-                <a
-                  href="#servicios"
-                  className="relative z-20 w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 sm:py-3.5 text-base sm:text-lg font-semibold text-white bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-slate-900"
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                  onMouseDown={() => {
-                    // Efecto al hacer clic
-                  }}
-                  onMouseUp={() => {
-                    // Restaurar después del clic
-                  }}
-                >
-                  Nuestros servicios
-                  <svg style={{ marginLeft: '0.5rem', width: '1.25rem', height: '1.25rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </a>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginTop: '3rem',
-                flexWrap: 'wrap',
-                gap: '1.5rem'
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
-            >
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '0.5rem 1rem',
-                borderRadius: '2rem',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                <div style={{
-                  width: '0.5rem',
-                  height: '0.5rem',
-                  borderRadius: '50%',
-                  background: '#4ade80',
-                  marginRight: '0.5rem',
-                  boxShadow: '0 0 10px #4ade80'
-                }} />
-                <span style={{ fontSize: '0.875rem', color: '#e2e8f0' }}>Disponibilidad 24/7</span>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '0.5rem 1rem',
-                borderRadius: '2rem',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                <div style={{
-                  width: '0.5rem',
-                  height: '0.5rem',
-                  borderRadius: '50%',
-                  background: '#60a5fa',
-                  marginRight: '0.5rem',
-                  boxShadow: '0 0 10px #60a5fa'
-                }} />
-                <span style={{ fontSize: '0.875rem', color: '#e2e8f0' }}>Profesionales certificados</span>
-              </div>
-            </motion.div>
-          </div>
-            
-          <div className="hidden lg:block" style={{
-            width: '100%',
-            position: 'relative',
-            ...(window.innerWidth >= 1024 ? {
-              width: '50%',
-              paddingLeft: '2rem'
-            } : {})
-          }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
-              style={{
-                position: 'relative',
-                borderRadius: '1.5rem',
-                overflow: 'hidden',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-              }}
-            >
-              <div style={{
-                position: 'relative',
-                zIndex: 10,
-                background: 'rgba(255, 255, 255, 0.03)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '1rem',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.2)'
-              }}>
-                <div style={{
-                  position: 'relative',
-                  paddingBottom: '66.67%', // 3:2 aspect ratio
-                  overflow: 'hidden'
-                }}>
-                  <img
-                    src="/futurgas-03.jpg"
-                    alt="Técnico trabajando en instalación"
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      transition: 'transform 0.5s ease',
-                      transform: 'scale(1.05)'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(to top, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 0.2) 50%, rgba(15, 23, 42, 0.1) 100%)',
-                    zIndex: 1
-                  }} />
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  padding: '1.5rem',
-                  zIndex: 2
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '0.75rem'
-                  }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      borderRadius: '50%',
-                      background: 'rgba(96, 165, 250, 0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginRight: '0.75rem',
-                      border: '1px solid rgba(96, 165, 250, 0.3)'
-                    }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M19.4 15C19.2663 15.3016 19.1699 15.6247 19.1 16C19.1 16 18 16.5 18 17C18 17.5 19 18 19 18.5C19 19 18 19 18 20H6C6 19 5 19 5 18.5C5 18 6 17.5 6 17C6 16.5 4.9 16 4.9 16C4.83014 15.6247 4.73375 15.3016 4.6 15C4.41092 14.5509 4.2 14.1 4 13.7C3.9 13.5 4 13.2 4 13C4 11 6 9 12 9C18 9 20 11 20 13C20 13.2 20.1 13.5 20 13.7C19.8 14.1 19.6 14.6 19.4 15Z" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{
-                        color: 'white',
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        lineHeight: 1.2
-                      }}>Técnicos Certificados</div>
-                      <div style={{
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        fontSize: '0.875rem',
-                        marginTop: '0.125rem'
-                      }}>Garantía de calidad</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div style={{
-                position: 'absolute',
-                width: '200px',
-                height: '200px',
-                background: 'radial-gradient(circle, rgba(96, 165, 250, 0.4) 0%, rgba(96, 165, 250, 0) 70%)',
-                borderRadius: '50%',
-                top: '-50px',
-                right: '-50px',
-                zIndex: 0
-              }} />
-              <div style={{
-                position: 'absolute',
-                width: '300px',
-                height: '300px',
-                background: 'radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, rgba(236, 72, 153, 0) 70%)',
-                borderRadius: '50%',
-                bottom: '-100px',
-                left: '-100px',
-                zIndex: 0
-              }} />
-            </motion.div>
-            
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginTop: '2rem',
-              gap: '1rem',
-              flexWrap: 'wrap'
-            }}>
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '0.75rem',
-                padding: '1rem',
-                flex: '1',
-                minWidth: '120px',
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{
-                  fontSize: '1.875rem',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  marginBottom: '0.25rem'
-                }}>3+</div>
-                <div style={{
-                  fontSize: '0.875rem',
-                  color: 'rgba(255, 255, 255, 0.7)'
-                }}>Años de experiencia</div>
-              </div>
-              
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '0.75rem',
-                padding: '1rem',
-                flex: '1',
-                minWidth: '120px',
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{
-                  fontSize: '1.875rem',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  marginBottom: '0.25rem'
-                }}>500+</div>
-                <div style={{
-                  fontSize: '0.875rem',
-                  color: 'rgba(255, 255, 255, 0.7)'
-                }}>Clientes satisfechos</div>
-              </div>
-              
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '0.75rem',
-                padding: '1rem',
-                flex: '1',
-                minWidth: '120px',
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{
-                  fontSize: '1.875rem',
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  marginBottom: '0.25rem'
-                }}>24/7</div>
-                <div style={{
-                  fontSize: '0.875rem',
-                  color: 'rgba(255, 255, 255, 0.7)'
-                }}>Soporte disponible</div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <span className={baseClass}>
+      {before}
+      <span className="text-gradient-brand">{match}</span>
+      {after}
+    </span>
+  );
+}
+
+function isExternalHref(href: string) {
+  return /^(https?:|mailto:|tel:)/i.test(href) || href.includes('wa.me');
+}
+
+export default function Hero({ content }: Props) {
+  const { data } = useSiteData();
+  const { isDark } = useTheme();
+  const [wordIndex, setWordIndex] = useState(0);
+  const brand = data.settings.site_name || 'Futurgas';
+  const logo = data.settings.logo_url || '/futurgas.png';
+  const whatsapp = data.settings.whatsapp || '5491136250298';
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
+    }, 2600);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const currentWord = ROTATING_WORDS[wordIndex];
+  const titleClass = isDark ? 'text-white' : 'text-navy';
+
+  const secondaryHref = useMemo(() => {
+    const href = content.secondary_cta?.href?.trim();
+    if (!href) return `https://wa.me/${whatsapp}`;
+    if (href.toLowerCase() === 'whatsapp') return `https://wa.me/${whatsapp}`;
+    return href;
+  }, [content.secondary_cta?.href, whatsapp]);
+
+  const secondaryExternal = isExternalHref(secondaryHref);
+
+  return (
+    <section
+      id="inicio"
+      className={`relative flex min-h-[92svh] items-center justify-center overflow-hidden pb-12 pt-24 transition-colors duration-500 md:min-h-[100svh] md:pb-14 ${
+        isDark ? 'text-white' : 'text-navy'
+      }`}
+    >
+      <div className="absolute inset-0 transition-opacity duration-500">
+        {isDark ? (
+          <>
+            {content.image_url ? (
+              <div
+                className="absolute inset-0 scale-105 bg-cover bg-center"
+                style={{ backgroundImage: `url('${content.image_url}')` }}
+              />
+            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#070b14]/96 via-[#0b1220]/92 to-[#1e3a5f]/88" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.3),transparent_52%)]" />
+            <div className="absolute -bottom-24 left-1/2 h-48 w-[80%] -translate-x-1/2 rounded-full bg-brand/25 blur-3xl" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#f0f7ff] via-[#f3f7fc] to-[#e7eef8]" />
+            {content.image_url ? (
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-[0.22]"
+                style={{ backgroundImage: `url('${content.image_url}')` }}
+              />
+            ) : null}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.18),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(30,58,95,0.12),transparent_45%)]" />
+            <div className="absolute right-[12%] top-24 h-40 w-40 rounded-full bg-brand/15 blur-3xl" />
+            <div className="absolute bottom-16 left-[8%] h-52 w-52 rounded-full bg-navy-mid/12 blur-3xl" />
+            <div className="absolute inset-0 mesh-grid opacity-40" />
+          </>
+        )}
       </div>
-      
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '8rem',
-        background: 'linear-gradient(to top, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0) 100%)',
-        pointerEvents: 'none'
-      }} />
-      
-      <div style={{
-        position: 'absolute',
-        bottom: '2rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        animation: 'bounce 2s infinite',
-        cursor: 'pointer',
-        zIndex: 10
-      }}
-      onClick={() => {
-        window.scrollTo({
-          top: window.innerHeight,
-          behavior: 'smooth'
-        });
-      }}>
-        <div style={{
-          width: '2.5rem',
-          height: '2.5rem',
-          borderRadius: '50%',
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          ...(window.innerWidth >= 1024 ? {
-            ':hover': {
-              background: 'rgba(255, 255, 255, 0.2)',
-              transform: 'translateY(-5px)'
-            }
-          } : {})
-        }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 14L12 21M12 21L5 14M12 21L12 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+
+      <div className="container relative z-10 mx-auto px-4">
+        <div className="mx-auto max-w-5xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="mb-10"
+          >
+            <motion.img
+              src={logo}
+              alt={brand}
+              className="mx-auto mb-8 h-14 w-auto drop-shadow-lg md:h-16"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+            />
+
+            <motion.div
+              className={`mb-7 inline-flex items-center justify-center rounded-full border px-5 py-2 backdrop-blur-md ${
+                isDark
+                  ? 'border-white/15 bg-white/10 text-white'
+                  : 'border-brand/20 bg-white/80 text-navy shadow-sm'
+              }`}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15, duration: 0.45 }}
+            >
+              <FireIcon className="mr-2 h-4 w-4 text-brand" />
+              <span className="text-sm font-semibold tracking-wide">
+                {content.eyebrow || 'Instalaciones de gas para la construcción'}
+              </span>
+            </motion.div>
+
+            <motion.h1
+              className="font-display mb-4 text-4xl font-extrabold leading-[1.08] sm:text-5xl md:text-6xl lg:text-7xl"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.55 }}
+            >
+              {headlineWithHighlight(content.headline, content.highlight, titleClass)}
+            </motion.h1>
+
+            <motion.p
+              className={`mb-6 flex flex-wrap items-baseline justify-center gap-x-2 text-xl font-semibold md:text-2xl ${
+                isDark ? 'text-white/90' : 'text-navy/85'
+              }`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              aria-live="polite"
+            >
+              <span>Para tu</span>
+              <span className="relative inline-flex min-w-[7.5ch] justify-center pb-[0.22em] md:min-w-[9ch]">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={currentWord}
+                    initial={{ y: '40%', opacity: 0, filter: 'blur(4px)' }}
+                    animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
+                    exit={{ y: '-35%', opacity: 0, filter: 'blur(4px)' }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    className="relative z-10 inline-block pb-[0.08em] text-gradient-brand"
+                  >
+                    {currentWord}
+                  </motion.span>
+                </AnimatePresence>
+                <span
+                  className="pointer-events-none absolute bottom-0 left-0 right-0 h-[0.12em] rounded-full bg-gradient-to-r from-brand to-brand-light opacity-90"
+                  aria-hidden
+                />
+              </span>
+            </motion.p>
+
+            <motion.p
+              className={`mx-auto mb-10 max-w-2xl text-lg leading-relaxed md:text-xl ${
+                isDark ? 'text-slate-200/90' : 'text-slate-600'
+              }`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.55 }}
+            >
+              {content.subheadline}
+            </motion.p>
+
+            <motion.div
+              className="flex flex-col justify-center gap-4 sm:flex-row"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.55 }}
+            >
+              <a href={content.primary_cta.href} className="btn-brand group">
+                <span className="relative z-10 flex items-center">
+                  {content.primary_cta.label}
+                  <ChevronRightIcon className="ml-1 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+              </a>
+              {content.secondary_cta ? (
+                <a
+                  href={secondaryHref}
+                  {...(secondaryExternal
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
+                  className={`btn-ghost group ${
+                    isDark
+                      ? 'border-white/25 bg-white/10 text-white backdrop-blur-md hover:bg-white/18'
+                      : 'border-navy/12 bg-white text-navy shadow-md hover:bg-[#f0f7ff]'
+                  }`}
+                >
+                  {secondaryExternal ? <PhoneIcon className="h-4 w-4" /> : null}
+                  {content.secondary_cta.label}
+                </a>
+              ) : null}
+            </motion.div>
+          </motion.div>
+
+          {!!content.badges?.length && (
+            <motion.div
+              className="mx-auto mt-10 grid max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 md:mt-14"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.55 }}
+            >
+              {content.badges.map((badge) => (
+                <motion.div
+                  key={badge.label}
+                  className={`rounded-2xl border p-5 text-center backdrop-blur-md transition-colors ${
+                    isDark
+                      ? 'border-white/10 bg-white/5 hover:bg-white/10'
+                      : 'border-white/80 bg-white/70 shadow-sm hover:bg-white'
+                  }`}
+                  whileHover={{ y: -4 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 18 }}
+                >
+                  <MapPinIcon className="mx-auto mb-2 h-5 w-5 text-brand" />
+                  <div className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-600'}`}>
+                    {badge.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
     </section>

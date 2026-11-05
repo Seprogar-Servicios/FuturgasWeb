@@ -1,304 +1,202 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState, type MouseEvent } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bars3Icon,
+  XMarkIcon,
+  HomeIcon,
+  WrenchScrewdriverIcon,
+  UsersIcon,
+  ChatBubbleLeftRightIcon,
+  PhotoIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
+import { useSiteData } from '../../contexts/SiteDataContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import ThemeToggle from '../ThemeToggle';
+import { scrollToSection } from '../../lib/scroll';
 
-const navigation = [
-  { name: 'Inicio', href: '#' },
-  { name: 'Servicios', href: '#servicios' },
-  { name: 'Nosotros', href: '#nosotros' },
-  { name: 'Contacto', href: '#contacto' },
-];
+const iconByHref: Record<string, typeof HomeIcon> = {
+  '#inicio': HomeIcon,
+  '#nosotros': UsersIcon,
+  '#servicios': WrenchScrewdriverIcon,
+  '#equipo': UserGroupIcon,
+  '#galeria': PhotoIcon,
+  '#contacto': ChatBubbleLeftRightIcon,
+};
+
+function sectionHref(hash: string, pathname: string) {
+  return pathname === '/' ? hash : `/${hash}`;
+}
 
 export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data } = useSiteData();
+  const { isDark } = useTheme();
+  const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('#inicio');
+  const navigation = data.navigation.filter((item) => item.is_visible);
+  const logo = data.settings.logo_url || '/futurgas.png';
+  const siteName = data.settings.site_name || 'Futurgas';
+  const onHome = location.pathname === '/';
+  const overDarkHero = onHome && !scrolled && isDark;
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20);
+      if (!onHome) return;
+
+      const sections = document.querySelectorAll('section[id]');
+      let current = '#inicio';
+      sections.forEach((section) => {
+        const el = section as HTMLElement;
+        const top = el.offsetTop - 120;
+        const id = el.getAttribute('id');
+        if (id && window.scrollY >= top && window.scrollY < top + el.offsetHeight) {
+          current = `#${id}`;
+        }
+      });
+      setActiveSection(current);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [onHome]);
+
+  function handleSectionClick(event: MouseEvent<HTMLAnchorElement>, hash: string) {
+    if (location.pathname !== '/') return;
+    event.preventDefault();
+    scrollToSection(hash);
+    if (window.location.hash !== hash) {
+      window.history.pushState(null, '', `/${hash}`);
+    }
+    setMenuOpen(false);
+  }
+
+  const linkIdle = overDarkHero
+    ? 'text-white/90 hover:text-white'
+    : 'text-foreground/80 hover:text-brand';
 
   return (
-    <header style={{
-      background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%)',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-      backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgba(71, 85, 105, 0.3)',
-      transition: 'all 0.3s ease-in-out'
-    }}>
-      <nav style={{
-        maxWidth: '1280px',
-        margin: '0 auto',
-        padding: '1rem 1.5rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }} aria-label="Global">
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <a 
-            href="#" 
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              position: 'relative',
-              overflow: 'hidden',
-              padding: '0.25rem 0.5rem',
-              borderRadius: '0.5rem',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              const before = e.currentTarget.querySelector('.logo-hover') as HTMLElement;
-              if (before) before.style.opacity = '1';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              const before = e.currentTarget.querySelector('.logo-hover') as HTMLElement;
-              if (before) before.style.opacity = '0';
-            }}
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? 'border-b border-theme bg-surface/90 py-2 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl'
+          : overDarkHero
+            ? 'bg-gradient-to-b from-black/35 to-transparent py-4'
+            : 'bg-gradient-to-b from-white/70 to-transparent py-4 backdrop-blur-[2px]'
+      }`}
+    >
+      <div className="container mx-auto flex items-center justify-between px-4">
+        <Link
+          to="/#inicio"
+          className="flex items-center gap-3"
+          onClick={(e) => handleSectionClick(e, '#inicio')}
+        >
+          <img src={logo} alt={`${siteName} logo`} className="h-10 w-auto" />
+          <span
+            className={`font-display hidden text-lg font-bold tracking-tight sm:inline ${
+              overDarkHero ? 'text-white' : 'text-foreground'
+            }`}
           >
-            <div 
-              className="logo-hover"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(59, 130, 246, 0.2))',
-                borderRadius: '0.5rem',
-                zIndex: -1,
-                opacity: 0,
-                transition: 'opacity 0.3s ease'
-              }}
-            />
-            <img 
-              src="/futurgas.png" 
-              alt="FuturGas Logo" 
-              style={{
-                height: '40px',
-                width: 'auto',
-                transition: 'all 0.3s ease',
-                position: 'relative',
-                zIndex: 1,
-                filter: 'drop-shadow(0 2px 10px rgba(96, 165, 250, 0.3))'
-              }}
-            />
-          </a>
-        </div>
-        
-        <div style={{
-          display: 'none',
-          alignItems: 'center',
-          gap: '2.5rem'
-        }}>
-          {navigation.map((item) => (
-            <div key={item.name} style={{ position: 'relative' }}>
-              <a
-                href={item.href}
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  color: '#e2e8f0',
-                  textDecoration: 'none',
-                  position: 'relative',
-                  padding: '0.5rem 0',
-                  transition: 'color 0.3s ease'
-                }}
-                onMouseOver={(e) => { 
-                  e.currentTarget.style.color = '#60a5fa';
-                  const after = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (after) after.style.width = '100%';
-                }}
-                onMouseOut={(e) => { 
-                  e.currentTarget.style.color = '#e2e8f0';
-                  const after = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (after) after.style.width = '0%';
-                }}
-              >
-                {item.name}
-              </a>
-              <div style={{
-                content: '""',
-                position: 'absolute',
-                bottom: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '0%',
-                height: '2px',
-                background: 'linear-gradient(90deg, #60a5fa, #3b82f6)',
-                transition: 'width 0.3s ease',
-                borderRadius: '2px'
-              }} />
-            </div>
-          ))}
-          <div style={{ position: 'relative' }}>
-            <a
-              href="#contacto"
-              style={{
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: 'white',
-                padding: '0.6rem 1.5rem',
-                borderRadius: '0.5rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                transition: 'all 0.3s ease',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
-                zIndex: 1,
-                display: 'inline-block'
-              }}
-              onMouseOver={(e) => { 
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
-                const before = e.currentTarget.querySelector('.btn-hover') as HTMLElement;
-                if (before) before.style.opacity = '1';
-              }}
-              onMouseOut={(e) => { 
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
-                const before = e.currentTarget.querySelector('.btn-hover') as HTMLElement;
-                if (before) before.style.opacity = '0';
-              }}
-            >
-              <div 
-                className="btn-hover"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                  opacity: 0,
-                  transition: 'opacity 0.3s ease',
-                  zIndex: -1
-                }}
-              />
-              Contacto
-            </a>
-          </div>
-        </div>
-        
-        <div style={{ display: 'block' }}>
+            {siteName}
+          </span>
+        </Link>
+
+        <nav className="hidden items-center gap-1 lg:flex xl:gap-2">
+          {navigation.map((item) => {
+            const Icon = iconByHref[item.url] || HomeIcon;
+            const active = onHome && activeSection === item.url;
+            return (
+              <div key={item.id} className="relative">
+                <Link
+                  to={sectionHref(item.url, location.pathname)}
+                  onClick={(e) => handleSectionClick(e, item.url)}
+                  className={`flex items-center px-2.5 py-2 text-sm font-semibold transition-colors ${
+                    active ? 'text-brand' : linkIdle
+                  }`}
+                >
+                  <Icon className="mr-1.5 hidden h-4 w-4 opacity-80 xl:inline" />
+                  {item.label}
+                </Link>
+                {active ? (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-brand"
+                    transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                  />
+                ) : null}
+              </div>
+            );
+          })}
+          <ThemeToggle lightOnDark={overDarkHero} />
+          <Link
+            to={sectionHref('#contacto', location.pathname)}
+            onClick={(e) => handleSectionClick(e, '#contacto')}
+            className="btn-brand ml-1 !px-5 !py-2.5 text-sm"
+          >
+            Contacto
+          </Link>
+        </nav>
+
+        <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle lightOnDark={overDarkHero} />
           <button
             type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0.5rem',
-              borderRadius: '0.375rem',
-              color: '#e2e8f0',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer'
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)' }}
-            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+            className={`rounded-full p-2 transition ${
+              overDarkHero ? 'text-white hover:bg-white/10' : 'text-foreground hover:bg-black/5'
+            }`}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label="Menú de navegación"
+            aria-expanded={menuOpen}
           >
-            <span style={{
-              position: 'absolute',
-              width: '1px',
-              height: '1px',
-              padding: 0,
-              margin: '-1px',
-              overflow: 'hidden',
-              clip: 'rect(0, 0, 0, 0)',
-              whiteSpace: 'nowrap',
-              borderWidth: 0
-            }}>Abrir menú</span>
-            {mobileMenuOpen ? (
-              <XMarkIcon style={{ width: '1.5rem', height: '1.5rem' }} aria-hidden="true" />
-            ) : (
-              <Bars3Icon style={{ width: '1.5rem', height: '1.5rem' }} aria-hidden="true" />
-            )}
+            {menuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
           </button>
         </div>
-      </nav>
-        
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          style={{
-            marginTop: '1rem',
-            padding: '0 1.5rem 1rem',
-            position: 'absolute',
-            width: '100%',
-            left: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.98)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 40,
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-        >
-          <div style={{
-            padding: '0.5rem 0',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-          }}>
-            {navigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                style={{
-                  display: 'block',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  color: '#e2e8f0',
-                  textDecoration: 'none',
-                  transition: 'background-color 0.2s, color 0.2s'
-                }}
-                onMouseOver={(e) => { 
-                  e.currentTarget.style.backgroundColor = 'rgba(96, 165, 250, 0.1)';
-                  e.currentTarget.style.color = '#60a5fa';
-                }}
-                onMouseOut={(e) => { 
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#e2e8f0';
-                }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.name}
-              </a>
-            ))}
-            <a
-              href="#contacto"
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'center',
-                padding: '0.75rem 1rem',
-                borderRadius: '0.375rem',
-                fontSize: '1rem',
-                fontWeight: 500,
-                color: 'white',
-                backgroundColor: '#3b82f6',
-                textDecoration: 'none',
-                transition: 'background-color 0.2s, transform 0.2s',
-                marginTop: '0.5rem'
-              }}
-              onMouseOver={(e) => { 
-                e.currentTarget.style.backgroundColor = '#2563eb';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseOut={(e) => { 
-                e.currentTarget.style.backgroundColor = '#3b82f6';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Contacto
-            </a>
-          </div>
-        </motion.div>
-      )}
+      </div>
+
+      <AnimatePresence>
+        {menuOpen ? (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden lg:hidden"
+          >
+            <div className="container mx-auto px-4 pb-3">
+              <div className="mt-3 space-y-1 rounded-2xl border border-theme bg-surface/95 p-3 shadow-xl backdrop-blur-xl">
+                {navigation.map((item) => {
+                  const Icon = iconByHref[item.url] || HomeIcon;
+                  const active = onHome && activeSection === item.url;
+                  return (
+                    <Link
+                      key={item.id}
+                      to={sectionHref(item.url, location.pathname)}
+                      onClick={(e) => handleSectionClick(e, item.url)}
+                      className={`flex items-center rounded-xl px-4 py-3 transition ${
+                        active
+                          ? 'bg-brand/12 font-semibold text-brand'
+                          : 'text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <Icon className="mr-3 h-5 w-5" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+                <Link
+                  to={sectionHref('#contacto', location.pathname)}
+                  onClick={(e) => handleSectionClick(e, '#contacto')}
+                  className="btn-brand mt-2 w-full"
+                >
+                  Solicitar presupuesto
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }
