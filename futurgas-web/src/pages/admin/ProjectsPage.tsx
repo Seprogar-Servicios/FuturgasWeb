@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { PencilSquareIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import {
   deleteProject,
   fetchProjectsAdmin,
@@ -6,6 +7,22 @@ import {
   upsertProject,
 } from '../../services/adminApi';
 import type { ProjectItem, ServiceItem } from '../../types/content';
+import {
+  AdminAlert,
+  AdminButton,
+  AdminCard,
+  AdminField,
+  AdminInput,
+  AdminPageHeader,
+  AdminSelect,
+  AdminSwitch,
+  AdminTable,
+  AdminTd,
+  AdminTextarea,
+  AdminTh,
+  IconActionButton,
+  StatusBadge,
+} from '../../components/admin/adminUi';
 
 const emptyForm = {
   title: '',
@@ -81,146 +98,148 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Trabajos / obras</h2>
-        <p className="text-muted">
-          Cada trabajo se asocia a un servicio y sus fotos aparecen en la galería del home.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Trabajos"
+        description="Cada obra se asocia a un servicio y alimenta la galería del home."
+        action={
+          <AdminButton type="button" variant="brand" onClick={() => startEdit()}>
+            <PlusIcon className="h-4 w-4" />
+            Nuevo
+          </AdminButton>
+        }
+      />
 
-      {message && (
-        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
-          {message}
-        </div>
-      )}
-      {error && (
-        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
-          {error}
-        </div>
-      )}
+      {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
+      {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-theme fg-admin-panel p-5">
-        <h3 className="font-semibold">{editing ? 'Editar trabajo' : 'Nuevo trabajo'}</h3>
-        <div className="grid gap-4 md:grid-cols-2">
-          <input
-            required
-            placeholder="Título"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.title}
-            onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-          />
-          <select
-            required
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.service_slug}
-            onChange={(e) => setForm((prev) => ({ ...prev, service_slug: e.target.value }))}
-          >
-            <option value="">Servicio asociado</option>
-            {services.map((svc) => (
-              <option key={svc.id} value={svc.slug}>
-                {svc.title}
-              </option>
-            ))}
-          </select>
-          <input
-            placeholder="Categoría (opcional)"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.category}
-            onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-          />
-          <textarea
-            required
-            placeholder="Descripción"
-            className="min-h-24 rounded-lg border border-theme px-3 py-2 md:col-span-2"
-            value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-          />
-          <input
-            placeholder="URL imagen de portada"
-            className="rounded-lg border border-theme px-3 py-2 md:col-span-2"
-            value={form.cover_image}
-            onChange={(e) => setForm((prev) => ({ ...prev, cover_image: e.target.value }))}
-          />
-          <input
-            placeholder="Ubicación"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.location}
-            onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
-          />
-          <input
-            type="date"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.completion_date}
-            onChange={(e) => setForm((prev) => ({ ...prev, completion_date: e.target.value }))}
-          />
-          <input
-            type="number"
-            placeholder="Orden"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.display_order}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
-            }
-          />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.is_published}
-              onChange={(e) => setForm((prev) => ({ ...prev, is_published: e.target.checked }))}
-            />
-            Publicado
-          </label>
-        </div>
-        <div className="flex gap-2">
-          <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-white">
-            Guardar
-          </button>
-          {editing && (
-            <button type="button" className="rounded-lg border px-4 py-2" onClick={() => startEdit()}>
-              Cancelar
-            </button>
-          )}
-        </div>
-      </form>
-
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-theme fg-admin-panel p-4"
-          >
-            <div>
-              <p className="font-semibold">{item.title}</p>
-              <p className="text-sm text-muted">
-                {item.is_published ? 'Publicado' : 'Borrador'}
-                {item.service_slug ? ` · ${item.service_slug}` : ''}
-                {item.location ? ` · ${item.location}` : ''}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="rounded-lg border px-3 py-1.5 text-sm"
-                onClick={() => startEdit(item)}
+      <AdminCard title={editing ? 'Editar trabajo' : 'Nuevo trabajo'}>
+        <form onSubmit={onSubmit} className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField label="Título">
+              <AdminInput
+                required
+                value={form.title}
+                onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Servicio asociado">
+              <AdminSelect
+                required
+                value={form.service_slug}
+                onChange={(e) => setForm((prev) => ({ ...prev, service_slug: e.target.value }))}
               >
-                Editar
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-700"
-                onClick={() =>
-                  void deleteProject(item.id)
-                    .then(load)
-                    .catch((err) => setError(err instanceof Error ? err.message : 'Error'))
+                <option value="">Elegir servicio</option>
+                {services.map((svc) => (
+                  <option key={svc.id} value={svc.slug}>
+                    {svc.title}
+                  </option>
+                ))}
+              </AdminSelect>
+            </AdminField>
+            <AdminField label="Categoría">
+              <AdminInput
+                value={form.category}
+                onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Ubicación">
+              <AdminInput
+                value={form.location}
+                onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Descripción" className="md:col-span-2">
+              <AdminTextarea
+                required
+                value={form.description}
+                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="URL imagen de portada" className="md:col-span-2">
+              <AdminInput
+                value={form.cover_image}
+                onChange={(e) => setForm((prev) => ({ ...prev, cover_image: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Fecha">
+              <AdminInput
+                type="date"
+                value={form.completion_date}
+                onChange={(e) => setForm((prev) => ({ ...prev, completion_date: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Orden">
+              <AdminInput
+                type="number"
+                value={form.display_order}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
                 }
-              >
-                Eliminar
-              </button>
-            </div>
+              />
+            </AdminField>
+            <AdminSwitch
+              label="Publicado"
+              description="Visible en la web pública"
+              checked={form.is_published}
+              onChange={(is_published) => setForm((prev) => ({ ...prev, is_published }))}
+            />
           </div>
-        ))}
-      </div>
+          <div className="flex flex-wrap gap-2">
+            <AdminButton type="submit" variant="primary">
+              Guardar
+            </AdminButton>
+            {editing ? (
+              <AdminButton type="button" variant="secondary" onClick={() => startEdit()}>
+                Cancelar
+              </AdminButton>
+            ) : null}
+          </div>
+        </form>
+      </AdminCard>
+
+      <AdminTable>
+        <thead>
+          <tr>
+            <AdminTh>Trabajo</AdminTh>
+            <AdminTh>Servicio</AdminTh>
+            <AdminTh>Estado</AdminTh>
+            <AdminTh className="text-right">Acciones</AdminTh>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.id}>
+              <AdminTd>
+                <p className="font-semibold">{item.title}</p>
+                <p className="text-xs text-muted">{item.location || 'Sin ubicación'}</p>
+              </AdminTd>
+              <AdminTd>{item.service_slug || '—'}</AdminTd>
+              <AdminTd>
+                <StatusBadge active={item.is_published} />
+              </AdminTd>
+              <AdminTd className="text-right">
+                <div className="inline-flex gap-1">
+                  <IconActionButton label="Editar" onClick={() => startEdit(item)}>
+                    <PencilSquareIcon className="h-4 w-4" />
+                  </IconActionButton>
+                  <IconActionButton
+                    label="Eliminar"
+                    tone="danger"
+                    onClick={() =>
+                      void deleteProject(item.id)
+                        .then(load)
+                        .catch((err) => setError(err instanceof Error ? err.message : 'Error'))
+                    }
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </IconActionButton>
+                </div>
+              </AdminTd>
+            </tr>
+          ))}
+        </tbody>
+      </AdminTable>
     </div>
   );
 }

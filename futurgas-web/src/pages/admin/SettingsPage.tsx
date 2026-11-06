@@ -5,6 +5,14 @@ import {
   saveSiteSettingsDraft,
 } from '../../services/adminApi';
 import type { SiteSettingsPayload } from '../../types/content';
+import {
+  AdminAlert,
+  AdminButton,
+  AdminCard,
+  AdminField,
+  AdminInput,
+  AdminPageHeader,
+} from '../../components/admin/adminUi';
 
 export default function SettingsPage() {
   const [id, setId] = useState<string | null>(null);
@@ -64,146 +72,137 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Configuración general</h2>
-        <p className="text-muted">Datos de contacto, marca y SEO.</p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Configuración"
+        description="Datos de contacto, marca y SEO."
+      />
 
-      {message && (
-        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
-          {message}
-        </div>
-      )}
-      {error && (
-        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
-          {error}
-        </div>
-      )}
+      {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
+      {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
 
-      <form onSubmit={saveDraft} className="space-y-4 rounded-2xl border border-theme fg-admin-panel p-5">
-        <div className="grid gap-4 md:grid-cols-2">
-          <input
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.site_name}
-            onChange={(e) => setForm({ ...form, site_name: e.target.value })}
-            placeholder="Nombre del sitio"
-          />
-          <input
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.contact_email || ''}
-            onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
-            placeholder="Email"
-          />
-          <input
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.whatsapp || ''}
-            onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
-            placeholder="WhatsApp (54911...)"
-          />
-          <input
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.logo_url || ''}
-            onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
-            placeholder="URL logo"
-          />
-          <input
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.seo_settings.title || ''}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                seo_settings: { ...form.seo_settings, title: e.target.value },
-              })
-            }
-            placeholder="SEO título"
-          />
-          <input
-            className="rounded-lg border border-theme px-3 py-2 md:col-span-2"
-            value={form.seo_settings.description || ''}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                seo_settings: { ...form.seo_settings, description: e.target.value },
-              })
-            }
-            placeholder="SEO descripción"
-          />
-          <input
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.social_links.instagram || ''}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                social_links: { ...form.social_links, instagram: e.target.value },
-              })
-            }
-            placeholder="Instagram URL"
-          />
-          <input
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.social_links.facebook || ''}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                social_links: { ...form.social_links, facebook: e.target.value },
-              })
-            }
-            placeholder="Facebook URL"
-          />
-        </div>
-
-        <div className="space-y-3">
-          <p className="text-sm font-semibold">Teléfonos</p>
-          {form.phones.map((phone, index) => (
-            <div key={index} className="grid gap-2 md:grid-cols-3">
-              <input
-                className="rounded-lg border border-theme px-3 py-2"
-                value={phone.label}
-                onChange={(e) => {
-                  const phones = [...form.phones];
-                  phones[index] = { ...phones[index], label: e.target.value };
-                  setForm({ ...form, phones });
-                }}
-                placeholder="Etiqueta"
+      <AdminCard title="Sitio y contacto">
+        <form onSubmit={saveDraft} className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField label="Nombre del sitio">
+              <AdminInput
+                value={form.site_name}
+                onChange={(e) => setForm({ ...form, site_name: e.target.value })}
               />
-              <input
-                className="rounded-lg border border-theme px-3 py-2"
-                value={phone.number}
-                onChange={(e) => {
-                  const phones = [...form.phones];
-                  phones[index] = { ...phones[index], number: e.target.value };
-                  setForm({ ...form, phones });
-                }}
-                placeholder="Número visible"
+            </AdminField>
+            <AdminField label="Email">
+              <AdminInput
+                value={form.contact_email || ''}
+                onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
               />
-              <input
-                className="rounded-lg border border-theme px-3 py-2"
-                value={phone.tel}
-                onChange={(e) => {
-                  const phones = [...form.phones];
-                  phones[index] = { ...phones[index], tel: e.target.value };
-                  setForm({ ...form, phones });
-                }}
-                placeholder="tel:+549..."
+            </AdminField>
+            <AdminField label="WhatsApp">
+              <AdminInput
+                value={form.whatsapp || ''}
+                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                placeholder="54911..."
               />
-            </div>
-          ))}
-        </div>
+            </AdminField>
+            <AdminField label="URL logo">
+              <AdminInput
+                value={form.logo_url || ''}
+                onChange={(e) => setForm({ ...form, logo_url: e.target.value })}
+              />
+            </AdminField>
+            <AdminField label="SEO título">
+              <AdminInput
+                value={form.seo_settings.title || ''}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    seo_settings: { ...form.seo_settings, title: e.target.value },
+                  })
+                }
+              />
+            </AdminField>
+            <AdminField label="SEO descripción" className="md:col-span-2">
+              <AdminInput
+                value={form.seo_settings.description || ''}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    seo_settings: { ...form.seo_settings, description: e.target.value },
+                  })
+                }
+              />
+            </AdminField>
+            <AdminField label="Instagram">
+              <AdminInput
+                value={form.social_links.instagram || ''}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    social_links: { ...form.social_links, instagram: e.target.value },
+                  })
+                }
+              />
+            </AdminField>
+            <AdminField label="Facebook">
+              <AdminInput
+                value={form.social_links.facebook || ''}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    social_links: { ...form.social_links, facebook: e.target.value },
+                  })
+                }
+              />
+            </AdminField>
+          </div>
 
-        <div className="flex gap-2">
-          <button type="submit" className="rounded-lg border px-4 py-2">
-            Guardar borrador
-          </button>
-          <button
-            type="button"
-            onClick={() => void publish()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white"
-          >
-            Publicar
-          </button>
-        </div>
-      </form>
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-foreground">Teléfonos</p>
+            {form.phones.map((phone, index) => (
+              <div key={index} className="grid gap-3 md:grid-cols-3">
+                <AdminField label="Etiqueta">
+                  <AdminInput
+                    value={phone.label}
+                    onChange={(e) => {
+                      const phones = [...form.phones];
+                      phones[index] = { ...phones[index], label: e.target.value };
+                      setForm({ ...form, phones });
+                    }}
+                  />
+                </AdminField>
+                <AdminField label="Número">
+                  <AdminInput
+                    value={phone.number}
+                    onChange={(e) => {
+                      const phones = [...form.phones];
+                      phones[index] = { ...phones[index], number: e.target.value };
+                      setForm({ ...form, phones });
+                    }}
+                  />
+                </AdminField>
+                <AdminField label="tel:">
+                  <AdminInput
+                    value={phone.tel}
+                    onChange={(e) => {
+                      const phones = [...form.phones];
+                      phones[index] = { ...phones[index], tel: e.target.value };
+                      setForm({ ...form, phones });
+                    }}
+                  />
+                </AdminField>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <AdminButton type="submit" variant="secondary">
+              Guardar borrador
+            </AdminButton>
+            <AdminButton type="button" variant="brand" onClick={() => void publish()}>
+              Publicar
+            </AdminButton>
+          </div>
+        </form>
+      </AdminCard>
     </div>
   );
 }

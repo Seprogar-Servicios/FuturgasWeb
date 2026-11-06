@@ -7,6 +7,16 @@ import {
   updateSectionDraft,
 } from '../../services/adminApi';
 import type { PageSection } from '../../types/content';
+import {
+  AdminAlert,
+  AdminButton,
+  AdminCard,
+  AdminField,
+  AdminInput,
+  AdminPageHeader,
+  AdminTextarea,
+  StatusBadge,
+} from '../../components/admin/adminUi';
 
 const FIELD_LABELS: Record<string, string> = {
   eyebrow: 'Antetítulo',
@@ -99,7 +109,7 @@ export default function EditorPage() {
         is_visible: selected.is_visible,
       });
       setSections((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
-      setMessage('Borrador guardado. La web pública aún muestra la versión publicada.');
+      setMessage('Borrador guardado');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar');
     } finally {
@@ -110,12 +120,12 @@ export default function EditorPage() {
   async function publishCurrent() {
     if (!selected) return;
     setSaving(true);
+    setError(null);
     try {
-      await updateSectionDraft(selected.id, draft);
+      await updateSectionDraft(selected.id, draft, { is_visible: selected.is_visible });
       const updated = await publishSection(selected.id);
       setSections((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
-      setDraft(updated.draft_content || {});
-      setMessage('Sección publicada. Los cambios ya están visibles en la web.');
+      setMessage('Sección publicada');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo publicar');
     } finally {
@@ -125,26 +135,31 @@ export default function EditorPage() {
 
   async function publishAll() {
     setSaving(true);
+    setError(null);
     try {
-      if (selected) await updateSectionDraft(selected.id, draft);
       await publishAllSections();
       await load();
-      setMessage('Todas las secciones con cambios fueron publicadas.');
+      setMessage('Todas las secciones publicadas');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo publicar');
+      setError(err instanceof Error ? err.message : 'No se pudo publicar todo');
     } finally {
       setSaving(false);
     }
   }
 
-  async function move(index: number, direction: -1 | 1) {
-    const target = index + direction;
+  async function move(index: number, delta: number) {
+    const target = index + delta;
     if (target < 0 || target >= sections.length) return;
-    const ordered = [...sections];
-    const [item] = ordered.splice(index, 1);
-    ordered.splice(target, 0, item);
-    setSections(ordered);
-    await reorderSections(ordered.map((section) => section.id));
+    const next = [...sections];
+    const [item] = next.splice(index, 1);
+    next.splice(target, 0, item);
+    setSections(next);
+    try {
+      await reorderSections(next.map((section) => section.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo reordenar');
+      await load();
+    }
   }
 
   async function toggleVisible() {
@@ -158,206 +173,192 @@ export default function EditorPage() {
   const textFields = Object.keys(draft).filter((key) => typeof draft[key] === 'string');
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold">Editor visual</h2>
-          <p className="text-muted">
-            Editá bloques predefinidos. No se permite HTML ni CSS libre.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => void saveDraft()}
-            disabled={saving || !selected}
-            className="rounded-lg border border-theme fg-admin-panel px-3 py-2 text-sm hover:brightness-110 disabled:opacity-50"
-          >
-            Guardar borrador
-          </button>
-          <button
-            type="button"
-            onClick={() => void publishCurrent()}
-            disabled={saving || !selected}
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50"
-          >
-            Publicar sección
-          </button>
-          <button
-            type="button"
-            onClick={() => void publishAll()}
-            disabled={saving}
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white hover:bg-emerald-500 disabled:opacity-50"
-          >
-            Publicar todo
-          </button>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Editor visual"
+        description="Editá bloques predefinidos. No se permite HTML ni CSS libre."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <AdminButton
+              type="button"
+              variant="secondary"
+              onClick={() => void saveDraft()}
+              disabled={saving || !selected}
+            >
+              Guardar borrador
+            </AdminButton>
+            <AdminButton
+              type="button"
+              variant="primary"
+              onClick={() => void publishCurrent()}
+              disabled={saving || !selected}
+            >
+              Publicar sección
+            </AdminButton>
+            <AdminButton
+              type="button"
+              variant="brand"
+              onClick={() => void publishAll()}
+              disabled={saving}
+            >
+              Publicar todo
+            </AdminButton>
+          </div>
+        }
+      />
 
-      {message && (
-        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
-          {message}
-        </div>
-      )}
-      {error && (
-        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
-          {error}
-        </div>
-      )}
+      {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
+      {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[280px_1fr]">
-        <div className="space-y-2 rounded-2xl border border-theme fg-admin-panel p-4">
-          <h3 className="mb-3 font-semibold">Secciones</h3>
-          {sections.map((section, index) => (
-            <div key={section.id} className="rounded-lg border border-theme p-2">
-              <button
-                type="button"
-                onClick={() => selectSection(section)}
-                className={`w-full rounded-md px-2 py-2 text-left text-sm ${
-                  selectedId === section.id ? 'bg-brand/15 text-brand' : 'hover:bg-[color:var(--page-bg)]'
-                }`}
-              >
-                <div className="font-medium">{section.title || section.section_type}</div>
-                <div className="text-xs text-muted">
-                  {section.section_type}
-                  {section.has_unpublished_changes ? ' · borrador' : ' · publicado'}
-                  {!section.is_visible ? ' · oculta' : ''}
+        <AdminCard title="Secciones">
+          <div className="space-y-2">
+            {sections.map((section, index) => (
+              <div key={section.id} className="rounded-xl border border-theme p-2">
+                <button
+                  type="button"
+                  onClick={() => selectSection(section)}
+                  className={`w-full rounded-lg px-2.5 py-2 text-left text-sm transition ${
+                    selectedId === section.id
+                      ? 'bg-brand/15 font-semibold text-brand'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5'
+                  }`}
+                >
+                  <div className="font-medium text-foreground">
+                    {section.title || section.section_type}
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs text-muted">{section.section_type}</span>
+                    <StatusBadge
+                      active={!section.has_unpublished_changes}
+                      activeLabel="Publicado"
+                      inactiveLabel="Borrador"
+                    />
+                    {!section.is_visible ? (
+                      <StatusBadge active={false} inactiveLabel="Oculta" />
+                    ) : null}
+                  </div>
+                </button>
+                <div className="mt-1 flex gap-1">
+                  <AdminButton
+                    type="button"
+                    variant="ghost"
+                    className="!px-2 !py-1 !text-xs"
+                    onClick={() => void move(index, -1)}
+                  >
+                    Subir
+                  </AdminButton>
+                  <AdminButton
+                    type="button"
+                    variant="ghost"
+                    className="!px-2 !py-1 !text-xs"
+                    onClick={() => void move(index, 1)}
+                  >
+                    Bajar
+                  </AdminButton>
                 </div>
-              </button>
-              <div className="mt-1 flex gap-1">
-                <button
-                  type="button"
-                  className="rounded border px-2 py-0.5 text-xs"
-                  onClick={() => void move(index, -1)}
-                >
-                  Subir
-                </button>
-                <button
-                  type="button"
-                  className="rounded border px-2 py-0.5 text-xs"
-                  onClick={() => void move(index, 1)}
-                >
-                  Bajar
-                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </AdminCard>
 
-        <div className="rounded-2xl border border-theme fg-admin-panel p-5">
+        <AdminCard title={selected ? selected.title || selected.section_type : 'Editor'}>
           {!selected ? (
             <p className="text-muted">Seleccioná una sección para editarla.</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-lg font-semibold">
-                  {selected.title || selected.section_type}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => void toggleVisible()}
-                  className="rounded-lg border px-3 py-1.5 text-sm"
-                >
+                <StatusBadge
+                  active={selected.is_visible}
+                  activeLabel="Visible"
+                  inactiveLabel="Oculta"
+                />
+                <AdminButton type="button" variant="secondary" onClick={() => void toggleVisible()}>
                   {selected.is_visible ? 'Ocultar sección' : 'Mostrar sección'}
-                </button>
+                </AdminButton>
               </div>
 
               {textFields.map((key) => (
-                <div key={key}>
-                  <label className="mb-1 block text-sm font-medium text-foreground">
-                    {FIELD_LABELS[key] || key}
-                  </label>
+                <AdminField key={key} label={FIELD_LABELS[key] || key}>
                   {String(draft[key] ?? '').length > 80 ? (
-                    <textarea
-                      className="min-h-24 w-full rounded-lg border border-theme px-3 py-2"
+                    <AdminTextarea
                       value={String(draft[key] ?? '')}
                       onChange={(e) => updateField(key, e.target.value)}
                     />
                   ) : (
-                    <input
-                      className="w-full rounded-lg border border-theme px-3 py-2"
+                    <AdminInput
                       value={String(draft[key] ?? '')}
                       onChange={(e) => updateField(key, e.target.value)}
                     />
                   )}
-                </div>
+                </AdminField>
               ))}
 
               {isPlainObject(draft.primary_cta) && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">CTA principal · texto</label>
-                    <input
-                      className="w-full rounded-lg border border-theme px-3 py-2"
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AdminField label="CTA principal · texto">
+                    <AdminInput
                       value={String(draft.primary_cta.label ?? '')}
                       onChange={(e) => updateField('primary_cta.label', e.target.value)}
                     />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">CTA principal · enlace</label>
-                    <input
-                      className="w-full rounded-lg border border-theme px-3 py-2"
+                  </AdminField>
+                  <AdminField label="CTA principal · enlace">
+                    <AdminInput
                       value={String(draft.primary_cta.href ?? '')}
                       onChange={(e) => updateField('primary_cta.href', e.target.value)}
                     />
-                  </div>
+                  </AdminField>
                 </div>
               )}
 
               {isPlainObject(draft.secondary_cta) && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">CTA secundario · texto</label>
-                    <input
-                      className="w-full rounded-lg border border-theme px-3 py-2"
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AdminField label="CTA secundario · texto">
+                    <AdminInput
                       value={String(draft.secondary_cta.label ?? '')}
                       onChange={(e) => updateField('secondary_cta.label', e.target.value)}
                     />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">CTA secundario · enlace</label>
-                    <input
-                      className="w-full rounded-lg border border-theme px-3 py-2"
+                  </AdminField>
+                  <AdminField label="CTA secundario · enlace">
+                    <AdminInput
                       value={String(draft.secondary_cta.href ?? '')}
                       onChange={(e) => updateField('secondary_cta.href', e.target.value)}
                     />
-                  </div>
+                  </AdminField>
                 </div>
               )}
 
               {isPlainObject(draft.cta) && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">CTA · texto</label>
-                    <input
-                      className="w-full rounded-lg border border-theme px-3 py-2"
+                <div className="grid gap-4 md:grid-cols-2">
+                  <AdminField label="CTA · texto">
+                    <AdminInput
                       value={String(draft.cta.label ?? '')}
                       onChange={(e) => updateField('cta.label', e.target.value)}
                     />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">CTA · enlace</label>
-                    <input
-                      className="w-full rounded-lg border border-theme px-3 py-2"
+                  </AdminField>
+                  <AdminField label="CTA · enlace">
+                    <AdminInput
                       value={String(draft.cta.href ?? '')}
                       onChange={(e) => updateField('cta.href', e.target.value)}
                     />
-                  </div>
+                  </AdminField>
                 </div>
               )}
 
-              <div className="rounded-xl border border-dashed border-theme bg-[color:var(--page-bg)] p-4">
-                <p className="mb-2 text-sm font-semibold text-foreground">Vista previa rápida</p>
-                <p className="text-xl font-bold text-foreground">
+              <div className="rounded-2xl border border-dashed border-theme bg-surface-elevated/60 p-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand">
+                  Vista previa rápida
+                </p>
+                <p className="font-display text-xl font-bold text-foreground">
                   {String(draft.headline || draft.title || selected.title || '')}
                 </p>
-                <p className="mt-2 text-muted">
+                <p className="mt-2 text-sm text-muted">
                   {String(draft.subheadline || draft.body || '')}
                 </p>
               </div>
             </div>
           )}
-        </div>
+        </AdminCard>
       </div>
     </div>
   );

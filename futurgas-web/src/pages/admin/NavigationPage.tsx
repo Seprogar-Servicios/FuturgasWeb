@@ -1,14 +1,31 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { PencilSquareIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import {
   deleteNavigationItem,
   fetchNavigationAdmin,
   upsertNavigationItem,
 } from '../../services/adminApi';
 import type { NavigationItem } from '../../types/content';
+import {
+  AdminAlert,
+  AdminButton,
+  AdminCard,
+  AdminField,
+  AdminInput,
+  AdminPageHeader,
+  AdminSwitch,
+  AdminTable,
+  AdminTd,
+  AdminTh,
+  IconActionButton,
+  StatusBadge,
+} from '../../components/admin/adminUi';
+
+const emptyForm = { label: '', url: '', display_order: 0, is_visible: true };
 
 export default function NavigationPage() {
   const [items, setItems] = useState<NavigationItem[]>([]);
-  const [form, setForm] = useState({ label: '', url: '', display_order: 0, is_visible: true });
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +37,11 @@ export default function NavigationPage() {
     void load().catch((err) => setError(err instanceof Error ? err.message : 'Error'));
   }, []);
 
+  function resetForm() {
+    setEditingId(null);
+    setForm(emptyForm);
+  }
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     try {
@@ -28,8 +50,7 @@ export default function NavigationPage() {
         ...form,
         display_order: Number(form.display_order) || 0,
       });
-      setForm({ label: '', url: '', display_order: 0, is_visible: true });
-      setEditingId(null);
+      resetForm();
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar');
@@ -37,90 +58,122 @@ export default function NavigationPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Navegación</h2>
-        <p className="text-muted">Menú principal de la web pública.</p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Navegación"
+        description="Menú principal de la web pública."
+        action={
+          <AdminButton type="button" variant="brand" onClick={resetForm}>
+            <PlusIcon className="h-4 w-4" />
+            Nuevo
+          </AdminButton>
+        }
+      />
 
-      {error && (
-        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
-          {error}
-        </div>
-      )}
+      {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
 
-      <form onSubmit={onSubmit} className="grid gap-3 rounded-2xl border border-theme fg-admin-panel p-5 md:grid-cols-4">
-        <input
-          required
-          placeholder="Etiqueta"
-          className="rounded-lg border border-theme px-3 py-2"
-          value={form.label}
-          onChange={(e) => setForm((prev) => ({ ...prev, label: e.target.value }))}
-        />
-        <input
-          required
-          placeholder="URL (#servicios)"
-          className="rounded-lg border border-theme px-3 py-2"
-          value={form.url}
-          onChange={(e) => setForm((prev) => ({ ...prev, url: e.target.value }))}
-        />
-        <input
-          type="number"
-          placeholder="Orden"
-          className="rounded-lg border border-theme px-3 py-2"
-          value={form.display_order}
-          onChange={(e) => setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))}
-        />
-        <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-white">
-          {editingId ? 'Actualizar' : 'Agregar'}
-        </button>
-      </form>
-
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-theme fg-admin-panel p-4"
-          >
-            <div>
-              <p className="font-medium">
-                {item.label} <span className="text-muted">→ {item.url}</span>
-              </p>
-              <p className="text-sm text-muted">
-                Orden {item.display_order} · {item.is_visible ? 'Visible' : 'Oculto'}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="rounded-lg border px-3 py-1.5 text-sm"
-                onClick={() => {
-                  setEditingId(item.id);
-                  setForm({
-                    label: item.label,
-                    url: item.url,
-                    display_order: item.display_order,
-                    is_visible: item.is_visible,
-                  });
-                }}
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-700"
-                onClick={() =>
-                  void deleteNavigationItem(item.id)
-                    .then(load)
-                    .catch((err) => setError(err instanceof Error ? err.message : 'Error'))
+      <AdminCard title={editingId ? 'Editar ítem' : 'Nuevo ítem'}>
+        <form onSubmit={onSubmit} className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField label="Etiqueta">
+              <AdminInput
+                required
+                value={form.label}
+                onChange={(e) => setForm((prev) => ({ ...prev, label: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="URL" hint="Ej: #servicios o /#contacto">
+              <AdminInput
+                required
+                value={form.url}
+                onChange={(e) => setForm((prev) => ({ ...prev, url: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Orden">
+              <AdminInput
+                type="number"
+                value={form.display_order}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
                 }
-              >
-                Eliminar
-              </button>
-            </div>
+              />
+            </AdminField>
+            <AdminSwitch
+              label="Visible"
+              checked={form.is_visible}
+              onChange={(is_visible) => setForm((prev) => ({ ...prev, is_visible }))}
+            />
           </div>
-        ))}
-      </div>
+          <div className="flex flex-wrap gap-2">
+            <AdminButton type="submit" variant="primary">
+              {editingId ? 'Actualizar' : 'Agregar'}
+            </AdminButton>
+            {editingId ? (
+              <AdminButton type="button" variant="secondary" onClick={resetForm}>
+                Cancelar
+              </AdminButton>
+            ) : null}
+          </div>
+        </form>
+      </AdminCard>
+
+      <AdminTable>
+        <thead>
+          <tr>
+            <AdminTh>Ítem</AdminTh>
+            <AdminTh>Orden</AdminTh>
+            <AdminTh>Estado</AdminTh>
+            <AdminTh className="text-right">Acciones</AdminTh>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.id}>
+              <AdminTd>
+                <p className="font-semibold">{item.label}</p>
+                <p className="text-xs text-muted">{item.url}</p>
+              </AdminTd>
+              <AdminTd>{item.display_order}</AdminTd>
+              <AdminTd>
+                <StatusBadge
+                  active={item.is_visible}
+                  activeLabel="Visible"
+                  inactiveLabel="Oculto"
+                />
+              </AdminTd>
+              <AdminTd className="text-right">
+                <div className="inline-flex gap-1">
+                  <IconActionButton
+                    label="Editar"
+                    onClick={() => {
+                      setEditingId(item.id);
+                      setForm({
+                        label: item.label,
+                        url: item.url,
+                        display_order: item.display_order,
+                        is_visible: item.is_visible,
+                      });
+                    }}
+                  >
+                    <PencilSquareIcon className="h-4 w-4" />
+                  </IconActionButton>
+                  <IconActionButton
+                    label="Eliminar"
+                    tone="danger"
+                    onClick={() =>
+                      void deleteNavigationItem(item.id)
+                        .then(load)
+                        .catch((err) => setError(err instanceof Error ? err.message : 'Error'))
+                    }
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </IconActionButton>
+                </div>
+              </AdminTd>
+            </tr>
+          ))}
+        </tbody>
+      </AdminTable>
     </div>
   );
 }

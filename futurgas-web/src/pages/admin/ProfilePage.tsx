@@ -1,33 +1,37 @@
 import { useAuth } from '../../contexts/AuthContext';
+import { AdminButton, AdminCard, AdminPageHeader } from '../../components/admin/adminUi';
 
 export default function ProfilePage() {
   const { user, role, logout } = useAuth();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Perfil y sesión</h2>
-        <p className="text-muted">Información de la cuenta administrativa.</p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Perfil"
+        description="Información de la cuenta administrativa."
+      />
 
-      <div className="max-w-lg space-y-3 rounded-2xl border border-theme fg-admin-panel p-5">
-        <p>
-          <span className="text-muted">Email:</span> {user?.email}
-        </p>
-        <p>
-          <span className="text-muted">Rol:</span> {role}
-        </p>
-        <p>
-          <span className="text-muted">ID:</span> {user?.id}
-        </p>
-        <button
-          type="button"
-          onClick={() => void logout()}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-white"
-        >
-          Cerrar sesión
-        </button>
-      </div>
+      <AdminCard title="Sesión activa" className="max-w-lg">
+        <dl className="space-y-3 text-sm">
+          <div>
+            <dt className="text-muted">Email</dt>
+            <dd className="mt-0.5 font-semibold text-foreground">{user?.email}</dd>
+          </div>
+          <div>
+            <dt className="text-muted">Rol</dt>
+            <dd className="mt-0.5 font-semibold text-foreground">{role}</dd>
+          </div>
+          <div>
+            <dt className="text-muted">ID</dt>
+            <dd className="mt-0.5 break-all font-mono text-xs text-foreground">{user?.id}</dd>
+          </div>
+        </dl>
+        <div className="mt-6">
+          <AdminButton type="button" variant="secondary" onClick={() => void logout()}>
+            Cerrar sesión
+          </AdminButton>
+        </div>
+      </AdminCard>
     </div>
   );
 }

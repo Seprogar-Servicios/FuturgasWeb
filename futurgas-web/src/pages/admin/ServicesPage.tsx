@@ -1,6 +1,22 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { PencilSquareIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { deleteService, fetchServicesAdmin, upsertService } from '../../services/adminApi';
 import type { ServiceItem } from '../../types/content';
+import {
+  AdminAlert,
+  AdminButton,
+  AdminCard,
+  AdminField,
+  AdminInput,
+  AdminPageHeader,
+  AdminSwitch,
+  AdminTable,
+  AdminTd,
+  AdminTextarea,
+  AdminTh,
+  IconActionButton,
+  StatusBadge,
+} from '../../components/admin/adminUi';
 
 const emptyForm = {
   title: '',
@@ -74,131 +90,138 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Servicios</h2>
-        <p className="text-muted">Gestión de servicios visibles en la web pública.</p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Servicios"
+        description="Catálogo visible en la web pública."
+        action={
+          <AdminButton type="button" variant="brand" onClick={() => startEdit()}>
+            <PlusIcon className="h-4 w-4" />
+            Nuevo
+          </AdminButton>
+        }
+      />
 
-      {message && (
-        <div className="rounded-lg fg-admin-alert-ok p-3 text-sm">
-          {message}
-        </div>
-      )}
-      {error && (
-        <div className="rounded-lg fg-admin-alert-error p-3 text-sm">
-          {error}
-        </div>
-      )}
+      {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
+      {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-theme fg-admin-panel p-5">
-        <h3 className="font-semibold">{editing ? 'Editar servicio' : 'Nuevo servicio'}</h3>
-        <div className="grid gap-4 md:grid-cols-2">
-          <input
-            required
-            placeholder="Título"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.title}
-            onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-          />
-          <input
-            placeholder="Icono (fire, network, pipe, wrench, building)"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.icon_key}
-            onChange={(e) => setForm((prev) => ({ ...prev, icon_key: e.target.value }))}
-          />
-          <textarea
-            required
-            placeholder="Descripción"
-            className="min-h-24 rounded-lg border border-theme px-3 py-2 md:col-span-2"
-            value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-          />
-          <textarea
-            placeholder="Características (una por línea)"
-            className="min-h-24 rounded-lg border border-theme px-3 py-2 md:col-span-2"
-            value={form.featuresText}
-            onChange={(e) => setForm((prev) => ({ ...prev, featuresText: e.target.value }))}
-          />
-          <input
-            type="color"
-            value={form.color_from}
-            onChange={(e) => setForm((prev) => ({ ...prev, color_from: e.target.value }))}
-          />
-          <input
-            type="color"
-            value={form.color_to}
-            onChange={(e) => setForm((prev) => ({ ...prev, color_to: e.target.value }))}
-          />
-          <input
-            type="number"
-            placeholder="Orden"
-            className="rounded-lg border border-theme px-3 py-2"
-            value={form.display_order}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
-            }
-          />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.is_visible}
-              onChange={(e) => setForm((prev) => ({ ...prev, is_visible: e.target.checked }))}
-            />
-            Visible en la web
-          </label>
-        </div>
-        <div className="flex gap-2">
-          <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-white">
-            Guardar
-          </button>
-          {editing && (
-            <button
-              type="button"
-              className="rounded-lg border px-4 py-2"
-              onClick={() => startEdit()}
-            >
-              Cancelar
-            </button>
-          )}
-        </div>
-      </form>
-
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-theme fg-admin-panel p-4"
-          >
-            <div>
-              <p className="font-semibold">{item.title}</p>
-              <p className="text-sm text-muted">
-                Orden {item.display_order} · {item.is_visible ? 'Visible' : 'Oculto'}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="rounded-lg border px-3 py-1.5 text-sm"
-                onClick={() => startEdit(item)}
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-700"
-                onClick={() =>
-                  void deleteService(item.id)
-                    .then(load)
-                    .catch((err) => setError(err instanceof Error ? err.message : 'Error'))
+      <AdminCard title={editing ? 'Editar servicio' : 'Nuevo servicio'}>
+        <form onSubmit={onSubmit} className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField label="Título">
+              <AdminInput
+                required
+                value={form.title}
+                onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Ícono" hint="fire, network, pipe, wrench, building">
+              <AdminInput
+                value={form.icon_key}
+                onChange={(e) => setForm((prev) => ({ ...prev, icon_key: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Descripción" className="md:col-span-2">
+              <AdminTextarea
+                required
+                value={form.description}
+                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Características" hint="Una por línea" className="md:col-span-2">
+              <AdminTextarea
+                value={form.featuresText}
+                onChange={(e) => setForm((prev) => ({ ...prev, featuresText: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Color desde">
+              <AdminInput
+                type="color"
+                value={form.color_from}
+                onChange={(e) => setForm((prev) => ({ ...prev, color_from: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Color hasta">
+              <AdminInput
+                type="color"
+                value={form.color_to}
+                onChange={(e) => setForm((prev) => ({ ...prev, color_to: e.target.value }))}
+              />
+            </AdminField>
+            <AdminField label="Orden">
+              <AdminInput
+                type="number"
+                value={form.display_order}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, display_order: Number(e.target.value) }))
                 }
-              >
-                Eliminar
-              </button>
-            </div>
+              />
+            </AdminField>
+            <AdminSwitch
+              label="Visible en la web"
+              checked={form.is_visible}
+              onChange={(is_visible) => setForm((prev) => ({ ...prev, is_visible }))}
+            />
           </div>
-        ))}
-      </div>
+          <div className="flex flex-wrap gap-2">
+            <AdminButton type="submit" variant="primary">
+              Guardar
+            </AdminButton>
+            {editing ? (
+              <AdminButton type="button" variant="secondary" onClick={() => startEdit()}>
+                Cancelar
+              </AdminButton>
+            ) : null}
+          </div>
+        </form>
+      </AdminCard>
+
+      <AdminTable>
+        <thead>
+          <tr>
+            <AdminTh>Servicio</AdminTh>
+            <AdminTh>Orden</AdminTh>
+            <AdminTh>Estado</AdminTh>
+            <AdminTh className="text-right">Acciones</AdminTh>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.id}>
+              <AdminTd>
+                <p className="font-semibold">{item.title}</p>
+                <p className="text-xs text-muted">{item.icon_key}</p>
+              </AdminTd>
+              <AdminTd>{item.display_order}</AdminTd>
+              <AdminTd>
+                <StatusBadge
+                  active={item.is_visible}
+                  activeLabel="Visible"
+                  inactiveLabel="Oculto"
+                />
+              </AdminTd>
+              <AdminTd className="text-right">
+                <div className="inline-flex gap-1">
+                  <IconActionButton label="Editar" onClick={() => startEdit(item)}>
+                    <PencilSquareIcon className="h-4 w-4" />
+                  </IconActionButton>
+                  <IconActionButton
+                    label="Eliminar"
+                    tone="danger"
+                    onClick={() =>
+                      void deleteService(item.id)
+                        .then(load)
+                        .catch((err) => setError(err instanceof Error ? err.message : 'Error'))
+                    }
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </IconActionButton>
+                </div>
+              </AdminTd>
+            </tr>
+          ))}
+        </tbody>
+      </AdminTable>
     </div>
   );
 }
