@@ -8,7 +8,7 @@ values (
   'media',
   true,
   5242880,
-  array['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'image/svg+xml']
+  array['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif']
 )
 on conflict (id) do update
 set

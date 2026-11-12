@@ -1,3 +1,5 @@
+import { assertSafeImageFile } from '../lib/imageMagic';
+import { assertSafeHref } from '../lib/safeUrl';
 import { requireSupabase } from '../lib/supabase';
 import type {
   MediaItem,
@@ -300,7 +302,7 @@ export async function upsertNavigationItem(input: Partial<NavigationItem> & { la
   const supabase = requireSupabase();
   const payload = {
     label: input.label,
-    url: input.url,
+    url: assertSafeHref(input.url),
     display_order: input.display_order ?? 0,
     is_visible: input.is_visible ?? true,
   };
@@ -386,9 +388,11 @@ export async function fetchMediaLibrary(): Promise<MediaItem[]> {
 }
 
 export async function uploadMediaFile(file: File, altText?: string) {
+  await assertSafeImageFile(file);
   const supabase = requireSupabase();
-  const ext = file.name.split('.').pop() || 'bin';
-  const path = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif'].includes(ext) ? ext : 'bin';
+  const path = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${safeExt}`;
 
   const { error: uploadError } = await supabase.storage.from('media').upload(path, file, {
     cacheControl: '3600',

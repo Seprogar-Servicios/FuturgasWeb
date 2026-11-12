@@ -1,7 +1,7 @@
 import { fallbackSiteData } from '../lib/fallbackContent';
+import { isSafeHref } from '../lib/safeUrl';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 import type {
-  MediaItem,
   NavigationItem,
   PublicSiteData,
   SectionType,
@@ -44,27 +44,19 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
   if (!supabase) return fallbackSiteData;
 
   try {
-    const [
-      settingsRes,
-      navRes,
-      sectionsRes,
-      servicesRes,
-      projectsRes,
-      teamRes,
-      mediaRes,
-    ] = await Promise.all([
-      supabase.from('v_public_site_settings').select('*').limit(1).maybeSingle(),
-      supabase.from('v_public_navigation').select('*').order('display_order'),
-      supabase
-        .from('v_public_page_sections')
-        .select('*')
-        .eq('page_slug', 'inicio')
-        .order('display_order'),
-      supabase.from('v_public_services').select('*').order('display_order'),
-      supabase.from('v_public_projects').select('*').order('display_order'),
-      supabase.from('v_public_team_members').select('*').order('display_order'),
-      supabase.from('media_library').select('*').order('created_at', { ascending: false }),
-    ]);
+    const [settingsRes, navRes, sectionsRes, servicesRes, projectsRes, teamRes] =
+      await Promise.all([
+        supabase.from('v_public_site_settings').select('*').limit(1).maybeSingle(),
+        supabase.from('v_public_navigation').select('*').order('display_order'),
+        supabase
+          .from('v_public_page_sections')
+          .select('*')
+          .eq('page_slug', 'inicio')
+          .order('display_order'),
+        supabase.from('v_public_services').select('*').order('display_order'),
+        supabase.from('v_public_projects').select('*').order('display_order'),
+        supabase.from('v_public_team_members').select('*').order('display_order'),
+      ]);
 
     if (
       settingsRes.error ||
@@ -85,13 +77,15 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
 
     const settings = mapSettings(settingsRes.data as Record<string, unknown> | null);
 
-    const navigation = (navRes.data ?? []).map((item) => ({
-      id: item.id as string,
-      label: item.label as string,
-      url: item.url as string,
-      display_order: item.display_order as number,
-      is_visible: true,
-    })) as NavigationItem[];
+    const navigation = (navRes.data ?? [])
+      .map((item) => ({
+        id: item.id as string,
+        label: item.label as string,
+        url: item.url as string,
+        display_order: item.display_order as number,
+        is_visible: true,
+      }))
+      .filter((item) => isSafeHref(item.url)) as NavigationItem[];
 
     const sections = (sectionsRes.data ?? []).map((item) => ({
       id: item.id as string,
@@ -139,8 +133,8 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
     if (projects.length) {
       const ids = projects.map((p) => p.id);
       const { data: imagesData } = await supabase
-        .from('project_images')
-        .select('*')
+        .from('v_public_project_images')
+        .select('id, project_id, image_url, alt_text, display_order')
         .in('project_id', ids)
         .order('display_order');
 
@@ -172,8 +166,6 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
       display_order: item.display_order as number,
       is_visible: true,
     })) as TeamMember[];
-
-    const media = ((mediaRes.data ?? []) as MediaItem[]) || [];
 
     let resolvedSections = (sections.length ? sections : fallbackSiteData.sections).filter(
       (item) => item.section_type !== 'projects'
@@ -211,7 +203,7 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
       // Si todavía no hay obras reales, usamos ejemplos locales para la galería.
       projects: projects.length ? projects : fallbackSiteData.projects,
       team: team.length ? team : fallbackSiteData.team,
-      media,
+      media: [],
     };
   } catch (error) {
     console.warn('fetchPublicSiteData failed', error);

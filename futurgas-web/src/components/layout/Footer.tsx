@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowUpIcon } from '@heroicons/react/24/outline';
 import { useSiteData } from '../../contexts/SiteDataContext';
+import { isSafeHref, safeHref } from '../../lib/safeUrl';
 
 export default function Footer() {
   const { data } = useSiteData();
@@ -22,7 +23,7 @@ export default function Footer() {
       ? { name: 'Instagram', href: settings.social_links.instagram }
       : null,
     settings.whatsapp ? { name: 'WhatsApp', href: `https://wa.me/${settings.whatsapp}` } : null,
-  ].filter(Boolean) as { name: string; href: string }[];
+  ].filter((item): item is { name: string; href: string } => Boolean(item && isSafeHref(item.href)));
 
   return (
     <footer className="relative overflow-hidden bg-gradient-to-b from-[#0b1220] to-[#070b14] pb-12 pt-16 text-white">
@@ -67,9 +68,12 @@ export default function Footer() {
               Navegación
             </h3>
             <ul className="space-y-2.5">
-              {navigation.map((item) => (
+              {navigation.filter((item) => isSafeHref(item.url)).map((item) => (
                 <li key={item.id}>
-                  <a href={item.url} className="text-sm text-slate-300 transition hover:text-brand-light">
+                  <a
+                    href={safeHref(item.url)}
+                    className="text-sm text-slate-300 transition hover:text-brand-light"
+                  >
                     {item.label}
                   </a>
                 </li>
