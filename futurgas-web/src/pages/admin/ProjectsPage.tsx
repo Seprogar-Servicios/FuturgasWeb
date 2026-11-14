@@ -112,6 +112,12 @@ export default function ProjectsPage() {
 
       {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
       {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
+      {!error && items.length === 0 ? (
+        <AdminAlert tone="info">
+          No hay trabajos en la base. La galería del home solo muestra obras publicadas desde este
+          panel (ya no rellena ejemplos locales).
+        </AdminAlert>
+      ) : null}
 
       <AdminCard title={editing ? 'Editar trabajo' : 'Nuevo trabajo'}>
         <form onSubmit={onSubmit} className="space-y-5">

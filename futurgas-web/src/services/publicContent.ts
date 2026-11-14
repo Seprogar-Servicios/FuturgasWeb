@@ -11,6 +11,11 @@ import type {
   TeamMember,
 } from '../types/content';
 
+export type PublicSiteFetchResult = {
+  data: PublicSiteData;
+  usingFallback: boolean;
+};
+
 function asFeatures(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String);
   return [];
@@ -35,13 +40,22 @@ function mapSettings(row: Record<string, unknown> | null): SiteSettingsPayload {
   };
 }
 
-export async function fetchPublicSiteData(): Promise<PublicSiteData> {
+function fallbackResult(): PublicSiteFetchResult {
+  return { data: fallbackSiteData, usingFallback: true };
+}
+
+/**
+ * Con Supabase configurado, la web muestra SOLO lo que está en la base
+ * (editable desde /gestion). El contenido demo local solo se usa si no hay
+ * conexión o falla el fetch principal.
+ */
+export async function fetchPublicSiteData(): Promise<PublicSiteFetchResult> {
   if (!isSupabaseConfigured) {
-    return fallbackSiteData;
+    return fallbackResult();
   }
 
   const supabase = getSupabase();
-  if (!supabase) return fallbackSiteData;
+  if (!supabase) return fallbackResult();
 
   try {
     const [settingsRes, navRes, sectionsRes, servicesRes, projectsRes, teamRes] =
@@ -72,7 +86,11 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
         services: servicesRes.error,
         projects: projectsRes.error,
       });
-      return fallbackSiteData;
+      return fallbackResult();
+    }
+
+    if (teamRes.error) {
+      console.warn('Supabase team fetch error (showing empty team)', teamRes.error);
     }
 
     const settings = mapSettings(settingsRes.data as Record<string, unknown> | null);
@@ -85,15 +103,19 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
         display_order: item.display_order as number,
         is_visible: true,
       }))
-      .filter((item) => isSafeHref(item.url)) as NavigationItem[];
+      .filter((item) => isSafeHref(item.url) && item.url !== '#obras')
+      .sort((a, b) => a.display_order - b.display_order) as NavigationItem[];
 
-    const sections = (sectionsRes.data ?? []).map((item) => ({
-      id: item.id as string,
-      section_type: item.section_type as SectionType,
-      title: (item.title as string | null) ?? null,
-      content: (item.content as Record<string, unknown>) ?? {},
-      display_order: item.display_order as number,
-    }));
+    const sections = (sectionsRes.data ?? [])
+      .map((item) => ({
+        id: item.id as string,
+        section_type: item.section_type as SectionType,
+        title: (item.title as string | null) ?? null,
+        content: (item.content as Record<string, unknown>) ?? {},
+        display_order: item.display_order as number,
+      }))
+      .filter((item) => item.section_type !== 'projects')
+      .sort((a, b) => a.display_order - b.display_order);
 
     const services = (servicesRes.data ?? []).map((item) => ({
       id: item.id as string,
@@ -132,13 +154,15 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
 
     if (projects.length) {
       const ids = projects.map((p) => p.id);
-      const { data: imagesData } = await supabase
+      const { data: imagesData, error: imagesError } = await supabase
         .from('v_public_project_images')
         .select('id, project_id, image_url, alt_text, display_order')
         .in('project_id', ids)
         .order('display_order');
 
-      if (imagesData?.length) {
+      if (imagesError) {
+        console.warn('Supabase project images fetch error', imagesError);
+      } else if (imagesData?.length) {
         const byProject = new Map<string, ProjectItem['images']>();
         for (const row of imagesData) {
           const list = byProject.get(row.project_id as string) ?? [];
@@ -167,46 +191,20 @@ export async function fetchPublicSiteData(): Promise<PublicSiteData> {
       is_visible: true,
     })) as TeamMember[];
 
-    let resolvedSections = (sections.length ? sections : fallbackSiteData.sections).filter(
-      (item) => item.section_type !== 'projects'
-    );
-
-    const requiredSectionTypes = ['gallery', 'process', 'coverage', 'team', 'faq'] as const;
-    for (const type of requiredSectionTypes) {
-      if (!resolvedSections.some((item) => item.section_type === type)) {
-        const fallbackSection = fallbackSiteData.sections.find(
-          (item) => item.section_type === type
-        );
-        if (fallbackSection) {
-          resolvedSections = [...resolvedSections, fallbackSection];
-        }
-      }
-    }
-    resolvedSections = [...resolvedSections].sort((a, b) => a.display_order - b.display_order);
-
-    let resolvedNav = (navigation.length ? navigation : fallbackSiteData.navigation).filter(
-      (item) => item.url !== '#obras'
-    );
-    for (const url of ['#galeria', '#equipo'] as const) {
-      if (!resolvedNav.some((item) => item.url === url)) {
-        const navItem = fallbackSiteData.navigation.find((item) => item.url === url);
-        if (navItem) resolvedNav = [...resolvedNav, navItem];
-      }
-    }
-    resolvedNav = [...resolvedNav].sort((a, b) => a.display_order - b.display_order);
-
     return {
-      settings,
-      navigation: resolvedNav,
-      sections: resolvedSections,
-      services: services.length ? services : fallbackSiteData.services,
-      // Si todavía no hay obras reales, usamos ejemplos locales para la galería.
-      projects: projects.length ? projects : fallbackSiteData.projects,
-      team: team.length ? team : fallbackSiteData.team,
-      media: [],
+      usingFallback: false,
+      data: {
+        settings,
+        navigation,
+        sections,
+        services,
+        projects,
+        team,
+        media: [],
+      },
     };
   } catch (error) {
     console.warn('fetchPublicSiteData failed', error);
-    return fallbackSiteData;
+    return fallbackResult();
   }
 }

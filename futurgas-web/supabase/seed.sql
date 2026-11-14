@@ -7,6 +7,7 @@
 -- Limpiar en orden seguro (idempotente para re-seed de desarrollo)
 truncate table public.project_images restart identity cascade;
 truncate table public.projects restart identity cascade;
+truncate table public.team_members restart identity cascade;
 truncate table public.services restart identity cascade;
 truncate table public.page_sections restart identity cascade;
 truncate table public.pages restart identity cascade;

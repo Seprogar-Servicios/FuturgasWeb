@@ -90,6 +90,12 @@ export default function TeamPage() {
 
       {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
       {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
+      {!error && items.length === 0 ? (
+        <AdminAlert tone="info">
+          No hay integrantes en la base. La web pública solo muestra lo que cargues acá (ya no usa
+          ejemplos locales). Agregá el equipo real para que aparezca en el home.
+        </AdminAlert>
+      ) : null}
 
       <AdminCard title={editing ? 'Editar integrante' : 'Nuevo integrante'}>
         <form onSubmit={onSubmit} className="space-y-5">

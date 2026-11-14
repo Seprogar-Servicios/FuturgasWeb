@@ -32,10 +32,10 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const next = await fetchPublicSiteData();
-      setData(next);
-      setUsingFallback(next === fallbackSiteData);
-      applySeo(next.settings);
+      const result = await fetchPublicSiteData();
+      setData(result.data);
+      setUsingFallback(result.usingFallback);
+      applySeo(result.data.settings);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar contenido');
       setData(fallbackSiteData);

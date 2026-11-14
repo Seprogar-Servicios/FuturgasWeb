@@ -104,6 +104,12 @@ export default function ServicesPage() {
 
       {message ? <AdminAlert tone="success">{message}</AdminAlert> : null}
       {error ? <AdminAlert tone="error">{error}</AdminAlert> : null}
+      {!error && items.length === 0 ? (
+        <AdminAlert tone="info">
+          No hay servicios en la base. Ejecutá el seed o creá servicios acá; la web no usa catálogo
+          demo si Supabase responde bien.
+        </AdminAlert>
+      ) : null}
 
       <AdminCard title={editing ? 'Editar servicio' : 'Nuevo servicio'}>
         <form onSubmit={onSubmit} className="space-y-5">
